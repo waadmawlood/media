@@ -2,7 +2,7 @@
 
 return [
 
-        /*
+    /*
     |--------------------------------------------------------------------------
     | Media waad/media package of laravel Configuration
     |--------------------------------------------------------------------------
@@ -13,8 +13,6 @@ return [
     | To learn more: https://github.com/waadmawlood/media
     |
     */
-
-    'table_name' => 'media',
 
     /*
      * The comment class that should be used to store and retrieve
@@ -29,7 +27,6 @@ return [
      */
     'user_model' => null,
 
-
     /*
      * The disk configration of path in file system in config/filesystem.php
      */
@@ -40,7 +37,7 @@ return [
      */
     'path' => 'public/upload',
 
-    /**
+    /*
      * Shortcut to make direct shortcut to access media
      */
     'shortcut' => 'public/media/files/',
@@ -50,26 +47,24 @@ return [
      */
     'delete_file' => false,
 
-    /**
+    /*
      * The default value of approved in table before migrate table media
      */
     'default_approved' => true,
 
-    /**
+    /*
      * The order by of get media ASC or DESC
      * type => DESC, desc, ASC, asc
      * column => id, base_name, file_name, approved, mime_type, file_size, user_id, created_at, updated_at
      */
     'order' => [
         'type' => 'desc',
-        'column' => 'created_at'
+        'column' => 'created_at',
     ],
 
-
-    /**
+    /*
      * format dateTime of created_at and updated_at
      * e.g. 2022-09-15 07:25:13 pm
      */
     'format_date' => 'Y-m-d h:i:s a',
-
 ];

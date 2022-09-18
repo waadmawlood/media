@@ -2,8 +2,7 @@
 
 namespace Waad\Media\Traits;
 
-use Waad\Media\Helpers\AddMedia;
-use Waad\Media\Helpers\DeleteMedia;
+use Waad\Media\Helpers\FileMedia;
 
 trait HasMedia
 {
@@ -16,9 +15,10 @@ trait HasMedia
      */
     public function addMedia($files, $index = 1)
     {
-        $mediaObject = new AddMedia($files, $this);
+        $mediaObject = new FileMedia($this);
+        $mediaObject->uploading($files, $index);
 
-        return $mediaObject->addFileToMedia();
+        return $mediaObject->storeMedia();
     }
 
     /**
@@ -47,6 +47,7 @@ trait HasMedia
      */
     public function deleteMedia($ids = null)
     {
-        new DeleteMedia($ids, $this);
+        $mediaObject = new FileMedia($this);
+        $mediaObject->delete($ids);
     }
 }
