@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateMediaTable extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up()
+    {
+        Schema::create(config('media.table_name','media'), function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->morphs('model');
+            $table->string('base_name');
+            $table->string('file_name')->nullable();
+            $table->integer('index')->default(1);
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('file_size')->default(0);
+            $table->boolean('approved')->default(config('media.default_approved', true));
+            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        Schema::dropIfExists(config('media.table_name','media'));
+    }
+}
