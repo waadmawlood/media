@@ -29,16 +29,18 @@ class MediaLinkCommand extends Command
     public function handle()
     {
         $link = $this->links();
+        $shortcut = $this->laravel['config']['media.shortcut'];
+        $link = realpath($link);
 
-        if (file_exists($link) && !$this->isRemovableSymlink($link, $this->option('force'))) {
-            $this->error("The [$link] link already exists.");
+        if (file_exists(public_path($shortcut)) && !$this->isRemovableSymlink($link, $this->option('force'))) {
+            $this->error("The [$shortcut] link already exists.");
         }
 
-        if (is_link($link)) {
+        if (is_link(public_path($shortcut))) {
             $this->laravel->make('files')->delete($link);
         }
 
-        $this->laravel->make('files')->link(public_path('media'), $link);
+        $this->laravel->make('files')->link($link, public_path($shortcut));
 
         $this->info("The [$link] link has been connected to [Media Link].");
 
@@ -53,10 +55,16 @@ class MediaLinkCommand extends Command
     protected function links()
     {
         $disk = $this->laravel['config']['media.disk'];
-        $root = $this->laravel['config']['filesystems.disks.'.$disk['root']];
-        $link = $this->laravel['config']['media.shortcut'];
+        $root = $this->laravel['config']["filesystems.disks.$disk.root"];
+        $link = $this->laravel['config']['media.path'];
 
-        return $root.'/'.$link ??
+        $path = $root.'/'.$link;
+
+        if (!is_dir($path)) {
+            mkdir($path, 775);
+        }
+
+        return $path ??
             storage_path('app/public/upload');
     }
 
