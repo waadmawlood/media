@@ -4,7 +4,7 @@
 
 # Media Package
 
-A Package to save your files in one places , can object has many or one media record.
+A Package to save your files in one place can object has many or one media record.
 
 
 
@@ -14,9 +14,9 @@ A Package to save your files in one places , can object has many or one media re
 - waad_mawlood@outlook.com
 
 
-## Mini Requrement
+## Mini Requirement
 
- - php 7.2.5
+ - PHP 7.4
  - laravel 5.5
  - illuminate/support 5.6 
 
@@ -45,7 +45,7 @@ configration from `config/media.php`
 php artisan migrate
 ```
 
-#### You can make link shortcut
+#### You can make a link shortcut
 
 ```sh
 php artisan media:link
@@ -76,7 +76,7 @@ You Can get media
 $post->media;
 ```
 
-use in controller `store` function to add One or Many image
+use in controller `store` function to add One or Many images
 ```js
 $post = Post::create([
   ...........
@@ -89,7 +89,7 @@ $basename = $post->addMedia($files);  // return array of file names
 return $basename;
 ```
 
-use in controller `update` function to add One or Many image
+use in controller `update` function to add One or Many images
 ```js
 $post = Post::find(1);
 $post->update([
@@ -103,7 +103,7 @@ $basename = $post->syncMedia($files);  // return array of file names
 return $basename;
 ```
 
-use in controller `destroy` function to add One or Many image
+use in controller `destroy` function to add One or Many images
 ```js
 
 $post = Post::find(1);
@@ -116,16 +116,7 @@ $post->deleteMedia($ids); // delete specific media by id from object
 $post->delete();
 ```
 
-
 ---
-
-### Scope
-
-You can get just approved is true
-
-```js
-$post->media->approved();  // approved = true
-```
 
 You can update approved all media of object
 ```js
@@ -135,13 +126,22 @@ $post->media->disApprove();   // put approved = false
 ```
 
 
-You can get user upload that media
+You can get the user to upload that media
 ```js
 $post->media->user; 
 or
 Post::with('media.user')->find(1);
 Post::with('media.user')->get();
 ```
+
+### Scope
+
+You can get only approved equal true
+
+```js
+$post->media->approved();  // approved = true
+```
+
 ## License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)

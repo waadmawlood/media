@@ -91,7 +91,7 @@ class Media extends Model
 
     // Return user model there is in config/media.php => user_model
     // can use any guard table in media
-    public function getAuthModelName()
+    private function getAuthModelName()
     {
         if (config('media.user_model')) {
             return config('media.user_model');
