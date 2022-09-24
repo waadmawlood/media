@@ -18,7 +18,7 @@ A Package to save your files in one place can object has many or one media recor
 
  - PHP 7.4
  - laravel 5.5
- - illuminate/support 5.6 
+ - illuminate/support 8.12 
 
 
 ## Installation
@@ -116,7 +116,6 @@ $post->deleteMedia($ids); // delete specific media by id from object
 $post->delete();
 ```
 
----
 
 You can update approved all media of object
 ```js
