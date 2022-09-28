@@ -40,7 +40,7 @@ return [
     /*
      * Shortcut to make direct shortcut to access media
      */
-    'shortcut' => 'public/media/files/',
+    'shortcut' => 'media',
 
     /*
      * The delete file is flag to delete file from server when delete media from DB
