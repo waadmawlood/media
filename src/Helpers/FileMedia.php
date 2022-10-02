@@ -116,7 +116,9 @@ class FileMedia
     // delete file from storage if delete_file is true in config/media.php
     private function destory($file)
     {
-        return Storage::disk($this->disk)->delete(sprintf('%s/%s', $this->path, $file->base_name));
+        if(filled($file)){
+            return Storage::disk($this->disk)->delete(sprintf('%s/%s', $this->path, $file->base_name));
+        }
     }
 
     // add information file saved in result list
