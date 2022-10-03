@@ -35,7 +35,7 @@ return [
     /*
      * path direction to save media
      */
-    'path' => 'public/upload',
+    'path' => 'public'. DIRECTORY_SEPARATOR .'upload',
 
     /*
      * Shortcut to make direct shortcut to access media

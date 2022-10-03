@@ -58,14 +58,14 @@ class MediaLinkCommand extends Command
         $root = $this->laravel['config']["filesystems.disks.$disk.root"];
         $link = $this->laravel['config']['media.path'];
 
-        $path = $root.'/'.$link;
+        $path = $root. DIRECTORY_SEPARATOR .$link;
 
         if (!is_dir($path)) {
             mkdir($path, 775);
         }
 
         return $path ??
-            storage_path('app/public/upload');
+            storage_path(join(DIRECTORY_SEPARATOR, array('app', 'public', 'upload')));
     }
 
     /**
