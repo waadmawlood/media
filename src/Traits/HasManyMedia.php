@@ -9,16 +9,13 @@ trait HasManyMedia
     /**
      * Order media table asc , desc and detrmaine the column
      * There is in config/media.php => order array
-     */
-    public $orderMedia = $this->getFromConfig('media.order');
-
-    /**
+     *
      * Return all media for this model.
      *
      * @return MorphMany
      */
     public function media()
     {
-        return $this->morphMany(config('media.media_class'), 'model')->orderBy($this->orderMedia['column'], $this->orderMedia['type']);
+        return $this->morphMany(config('media.media_class'), 'model')->orderBy(config('media.order.column'), config('media.order.type'));
     }
 }

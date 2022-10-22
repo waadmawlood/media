@@ -96,7 +96,9 @@ class FileMedia
             $is_list = $this->isList($this->file);
             $is_list ? $this->deleteMany($this->file) : $this->deleteOne($this->file);
         }
-        $this->file->delete();
+        if(filled($this->file)){
+            $this->file->delete();
+        }
     }
 
     // to method destory file

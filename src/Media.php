@@ -30,7 +30,7 @@ class Media extends Model
      */
     public function getPathAttribute()
     {
-        return sprintf('%s/%s/%s', $this->getFromConfig('app.url'), $this->getFromConfig('media.shortcut'), $this->attributes['base_name']);
+        return sprintf('%s/%s', url($this->getFromConfig('media.shortcut')) , $this->attributes['base_name']);
     }
 
     /**
