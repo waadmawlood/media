@@ -19,7 +19,7 @@ class FileMedia
     public function __construct($model)
     {
         $this->model = $model;
-        $this->mediaClass = config('media.media_class');
+        $this->mediaClass = app(config('media.media_class'));
         $this->disk = config('media.disk');
         $this->path = config('media.path');
     }
@@ -90,7 +90,7 @@ class FileMedia
     // delete media and files
     public function delete($files)
     {
-        $medias = $files == null ? $this->model->media : $this->mediaClass->whereIn('id', $files)->get();
+        $medias = $files == null ? $this->model->media : $this->mediaClass->whereIn('id', $this->isList($files) ? $files : [$files])->get();
         $this->file = $medias;
         if (config('media.delete_file', false)) {
             $is_list = $this->isList($this->file);
@@ -119,7 +119,7 @@ class FileMedia
     private function destory($file)
     {
         if(filled($file)){
-            return Storage::disk($this->disk)->delete(sprintf('%s/%s', $this->path, $file->base_name));
+            return Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
         }
     }
 
@@ -140,7 +140,10 @@ class FileMedia
     // check is list array or no
     private function isList($file)
     {
-        return is_array($file);
+        if (is_array($file) || ($file instanceof \ArrayAccess && $file instanceof \Traversable)) {
+            return true;
+        }
+        return false;
     }
 
     // create random string for name of file
