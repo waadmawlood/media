@@ -96,9 +96,6 @@ class FileMedia
             $is_list = $this->isList($this->file);
             $is_list ? $this->deleteMany($this->file) : $this->deleteOne($this->file);
         }
-        if(filled($this->file)){
-            $this->file->delete();
-        }
     }
 
     // to method destory file
@@ -119,7 +116,9 @@ class FileMedia
     private function destory($file)
     {
         if(filled($file)){
-            return Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
+            $delete = Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
+            $file->delete();
+            return $delete;
         }
     }
 
