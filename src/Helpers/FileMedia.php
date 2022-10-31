@@ -92,10 +92,8 @@ class FileMedia
     {
         $medias = $files == null ? $this->model->media : $this->mediaClass->whereIn('id', $this->isList($files) ? $files : [$files])->get();
         $this->file = $medias;
-        if (config('media.delete_file', false)) {
-            $is_list = $this->isList($this->file);
-            $is_list ? $this->deleteMany($this->file) : $this->deleteOne($this->file);
-        }
+        $is_list = $this->isList($this->file);
+        $is_list ? $this->deleteMany($this->file) : $this->deleteOne($this->file);
     }
 
     // to method destory file
@@ -115,11 +113,15 @@ class FileMedia
     // delete file from storage if delete_file is true in config/media.php
     private function destory($file)
     {
-        if(filled($file)){
-            $delete = Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
-            $file->delete();
-            return $delete;
+        $delete = true;
+        if (config('media.delete_file', false)) {
+            if(filled($file)){
+                $delete = Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
+            }
         }
+        $file->delete();
+
+        return $delete;
     }
 
     // add information file saved in result list
