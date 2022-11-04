@@ -119,7 +119,9 @@ class FileMedia
                 $delete = Storage::disk($this->disk)->delete(sprintf('%s%s%s', $this->path, DIRECTORY_SEPARATOR ,$file['base_name']));
             }
         }
-        $file->delete();
+        if(filled($file)){
+            $file->delete();
+        }
 
         return $delete;
     }
