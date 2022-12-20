@@ -13,6 +13,7 @@ class Media extends Model
         'base_name',
         'file_name',
         'index',
+        'label',
         'mime_type',
         'file_size',
         'approved',

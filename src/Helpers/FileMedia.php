@@ -11,6 +11,7 @@ class FileMedia
     public $mediaClass;
     public $file;
     public $index;
+    public $label;
     public $result = [];
     public $disk;
     public $path;
@@ -25,10 +26,11 @@ class FileMedia
     }
 
     // upload files and return information of files saved
-    public function uploading($files, $index = 1)
+    public function uploading($files, $index = 1, $label = null)
     {
         $this->file = $files;
         $this->index = $index;
+        $this->label = $label;
 
         if (is_null($this->file)) {
             return;
@@ -63,7 +65,7 @@ class FileMedia
         $mime = $file->getClientMimeType();
         $file_size = filesize($file);
 
-        $this->addResult($baseName, $fileName, $mime, $file_size, $index);
+        $this->addResult($baseName, $fileName, $mime, $file_size, $index, $this->label);
     }
 
     // add to media DB after saved in storage
@@ -74,6 +76,7 @@ class FileMedia
                 'base_name' => $information['base_name'],
                 'file_name' => $information['file_name'],
                 'index' => $information['index'],
+                'label' => $information['label'],
                 'mime_type' => $information['mime_type'],
                 'file_size' => $information['file_size'],
                 'model_type' => get_class($this->model),
@@ -127,7 +130,7 @@ class FileMedia
     }
 
     // add information file saved in result list
-    protected function addResult($baseName, $filename, $mime, $file_size, $index)
+    protected function addResult($baseName, $filename, $mime, $file_size, $index, $label)
     {
         $user = auth()->user();
         $this->result[] = [
@@ -136,6 +139,7 @@ class FileMedia
             'mime_type' => $mime,
             'file_size' => $file_size,
             'index' => $index,
+            'label' => $label,
             'user_id' => is_null($user) ? null : $user->getKey(),
         ];
     }

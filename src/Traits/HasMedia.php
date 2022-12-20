@@ -13,10 +13,10 @@ trait HasMedia
      * @param int|array   $index
      * @return array
      */
-    public function addMedia($files, $index = 1)
+    public function addMedia($files, $index = 1, $label = null)
     {
         $mediaObject = new FileMedia($this);
-        $mediaObject->uploading($files, $index);
+        $mediaObject->uploading($files, $index, $label);
 
         return $mediaObject->storeMedia();
     }
