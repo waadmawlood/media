@@ -1,0 +1,42 @@
+{
+    "name": "waad/media",
+    "description": "Add media to your Laravel application in one place",
+    "keywords": [
+        "Waad Mawlood",
+        "Media",
+        "laravel-media",
+        "files",
+        "media-php",
+        "upload file"
+    ],
+    "homepage": "https://github.com/waadmawlood/media",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Waad Mawlood",
+            "email": "waad_mawlood@outlook.com",
+            "homepage": "https://waad.netlify.app",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0|^8.0.2|^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Waad\\Media\\": "src"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Waad\\Media\\MediaServiceProvider"
+            ]
+        }
+    }
+}
