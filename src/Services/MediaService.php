@@ -22,6 +22,9 @@ class MediaService
         $this->model = $model;
         $this->result = collect();
 
+        $this->disk = config('media.disk', null);
+        $this->directory = config('media.directory', null);
+
         if(property_exists($this->model, 'media_disk')){
             $this->disk = $this->model->media_disk;
         }
