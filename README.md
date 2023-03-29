@@ -93,7 +93,7 @@ $post->media;
 ```
 &nbsp;
 
-- **`Upload Files`** eg. Use in controller `store` function to add One or Many Files
+- **`Upload Files`** eg. Use in controller `store` method to add One or Many Files
 ```js
 $post = Post::create([
   ...........
@@ -122,7 +122,7 @@ return $media;
 ```
 &nbsp;
 
-- **`Sync Files`** eg. Use in controller `update` function to add One or Many Files
+- **`Sync Files`** eg. Use in controller `update` method to add One or Many Files
 ```js
 $post = Post::find(1);
 $post->update([
@@ -151,7 +151,7 @@ $media = $post->syncMedia($files)->disk('public')->directory('posts/video')->lab
 return $media;
 ```
 
-- **`Delete Files`** eg. Use in controller `destroy` function to add One or Many Files
+- **`Delete Files`** eg. Use in controller `destroy` method to delete all or specific ids
 ```js
 
 $post = Post::find(1);
@@ -167,13 +167,14 @@ $media = $post->deleteMedia($files, $index = 2);
 
 // version >= 2 
 // will return bool or array of bool or null by on Relationship
-$media = $post->deleteMedia($files)->delete();
+$media = $post->deleteMedia()->delete();
+$media = $post->deleteMedia($medias_model)->delete();
 $media = $post->deleteMedia([1,3])->delete(); // delete only these ids
 
-$lastMedia = $$post->media->last(); // return Collection Media Model 
+$lastMedia = $post->media->last(); // return Collection Media Model 
 $media = $post->deleteMedia($lastMedia)->delete(); // delete only this media
 
-$media2 = $$post->mediaById(8);
+$media2 = $post->mediaById(8);
 $media = $post->deleteMedia($media2)->delete(); 
 
 $mediaList = $post->mediaByMimeType('image/png');
@@ -254,6 +255,29 @@ You can get only approved equal true
 
 ```js
 $post->media->approved();  // approved = true
+```
+
+## 🍔 Permanently delete files
+
+Determine `delete_file_after_day` from `config/media.php` must be integer
+
+⭕️ Add Command to crontab of project to implemented automatically
+
+in `app/Console/Kernel.php` add this:
+
+```js
+protected function schedule(Schedule $schedule)
+    {
+        // .....................
+
+        $schedule->command('media:prune')->daily();
+    }
+```
+
+⭕️ implemented manually
+
+```sh
+php artisan media:prune
 ```
 
 ## 🎯 License
