@@ -4,6 +4,7 @@ namespace Waad\Media;
 
 use Illuminate\Support\ServiceProvider;
 use Waad\Media\Commands\MediaLinkCommand;
+use Waad\Media\Commands\MediaPrune;
 
 class MediaServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,7 @@ class MediaServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 MediaLinkCommand::class,
+                MediaPrune::class,
             ]);
         }
 
