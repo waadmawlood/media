@@ -2,16 +2,13 @@
 
 namespace Waad\Media;
 
-use Exception;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\MassPrunable;
 
 class Media extends Model
 {
     use SoftDeletes;
-    use MassPrunable;
 
     /**
      * fillable columns can insert and updated from user
@@ -64,8 +61,9 @@ class Media extends Model
         $disk = $this->attributes['disk'] ?? $this->getFromConfig('media.disk');
         $directory = $this->attributes['directory'] ?? $this->getFromConfig('media.directory');
         $shortcut = $this->getFromConfig("media.shortcut.{$disk}");
+        $basename = $this->attributes['base_name'] ?? null;
 
-        return sprintf('%s/%s', url("{$shortcut}/{$directory}/"), $this->attributes['base_name']);
+        return $basename ? sprintf('%s/%s', url("{$shortcut}/{$directory}/"), $basename) : null;
     }
 
     /**
@@ -143,21 +141,5 @@ class Media extends Model
     private function getFromConfig(string $value)
     {
         return config($value);
-    }
-
-    /**
-     * prunable
-     * @throws Exception
-     * @return Media
-     */
-    public function prunable()
-    {
-        $days = $this->getFromConfig('media.delete_file_after_day');
-
-        if (!is_int($days)) {
-            throw new Exception("media delete after day in config/media.php is not integer");
-        }
-
-        return static::where('created_at', '<', now()->subDays($days));
     }
 }
