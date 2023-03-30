@@ -2,6 +2,8 @@
 
 namespace Waad\Media\Traits;
 
+use Waad\Media\Media;
+
 trait HasManyMedia
 {
     use HasMedia;
