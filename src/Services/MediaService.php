@@ -17,9 +17,10 @@ class MediaService
     private string|null $directory;
     private Collection $result;
 
-    public function __construct($model)
+    public function __construct($model, $files = null)
     {
         $this->model = $model;
+        $this->files = $files;
         $this->result = collect();
 
         $this->disk = config('media.disk', null);
@@ -50,7 +51,7 @@ class MediaService
     /**
      * @return mixed
      */
-    public function getModel()
+    protected function getModel()
     {
         return $this->model;
     }
@@ -59,7 +60,7 @@ class MediaService
      * @param mixed $model
      * @return self
      */
-    public function setModel($model)
+    protected function setModel($model)
     {
         $this->model = $model;
         return $this;
@@ -69,7 +70,7 @@ class MediaService
      * @param mixed $files
      * @return self
      */
-    public function setFiles($files): self
+    protected function setFiles($files): self
     {
         $this->files = $files;
         return $this;
@@ -78,7 +79,7 @@ class MediaService
     /**
      * @return Collection<UploadedFile>|array<UploadedFile>|array<int>|array<Media>|UploadedFile|Media|int|null
      */
-    public function getFiles()
+    protected function getFiles()
     {
         return $this->files;
     }
@@ -87,7 +88,7 @@ class MediaService
      * @param int $index
      * @return self
      */
-    public function setIndex($index)
+    protected function setIndex($index)
     {
         $this->index = $index;
         return $this;
@@ -96,7 +97,7 @@ class MediaService
     /**
      * @return int
      */
-    public function getIndex()
+    protected function getIndex()
     {
         return $this->index ?? 1;
     }
@@ -104,7 +105,7 @@ class MediaService
     /**
      * @return string|null
      */
-    public function getLabel()
+    protected function getLabel()
     {
         return $this->label ?? null;
     }
@@ -113,7 +114,7 @@ class MediaService
      * @param string|null $label
      * @return self
      */
-    public function setLabel($label)
+    protected function setLabel($label)
     {
         $this->label = $label;
         return $this;
@@ -122,7 +123,7 @@ class MediaService
     /**
      * @return string|null
      */
-    public function getDisk()
+    protected function getDisk()
     {
         return $this->disk ?? config('media.disk');
     }
@@ -131,7 +132,7 @@ class MediaService
      * @param string|null $disk
      * @return self
      */
-    public function setDisk(string|null $disk)
+    protected function setDisk(string|null $disk)
     {
         $this->disk = $disk;
         return $this;
@@ -140,7 +141,7 @@ class MediaService
     /**
      * @return string|null
      */
-    public function getDirectory()
+    protected function getDirectory()
     {
         return $this->directory ?? config('media.directory');
     }
@@ -149,7 +150,7 @@ class MediaService
      * @param string|null $directory
      * @return self
      */
-    public function setDirectory(string|null $directory)
+    protected function setDirectory(string|null $directory)
     {
         $this->directory = $directory;
         return $this;
@@ -158,7 +159,7 @@ class MediaService
 	/**
 	 * @return Collection
 	 */
-	public function getResult()
+	protected function getResult()
     {
 		return $this->result;
 	}
@@ -167,7 +168,7 @@ class MediaService
 	 * @param Media|bool $result
 	 * @return self
 	 */
-	public function setResult(Media|bool $result)
+	protected function setResult(Media|bool $result)
     {
 		$this->result->push($result);
 		return $this;

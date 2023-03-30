@@ -11,9 +11,9 @@ class MediaDeletingService extends MediaService
     private bool $isList;
     private array $medias;
 
-    public function __construct($model)
+    public function __construct($model, $files = null)
     {
-        parent::__construct($model);
+        parent::__construct($model, $files);
         $this->medias = $this->getModel()->media->pluck('id')->toArray();
     }
 

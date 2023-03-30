@@ -18,8 +18,7 @@ trait HasMedia
      */
     public function addMedia(UploadedFile|array|null $files)
     {
-        $service = new MediaUploadingService($this);
-        $service->setFiles($files);
+        $service = new MediaUploadingService($this, $files);
 
         return $service;
     }
@@ -46,12 +45,10 @@ trait HasMedia
      */
     public function deleteMedia($files = null)
     {
-        $service = new MediaDeletingService($this);
-
         if (filled($files)) {
-            $service->setFiles($files);
+            $service = new MediaDeletingService($this, $files);
         } else {
-            $service->setFiles($this->media);
+            $service = new MediaDeletingService($this, $this->media);
         }
 
         return $service;

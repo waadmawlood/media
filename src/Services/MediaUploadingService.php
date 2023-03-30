@@ -12,9 +12,9 @@ class MediaUploadingService extends MediaService
 {
 
     private bool $isList;
-    public function __construct($model)
+    public function __construct($model, $files = null)
     {
-        parent::__construct($model);
+        parent::__construct($model, $files);
     }
 
     /**
@@ -91,7 +91,7 @@ class MediaUploadingService extends MediaService
      *
      * @return Collection|Media|null
      */
-    public function uploadFiles()
+    protected function uploadFiles()
     {
         return $this->isList ?
             $this->uploadManyFiles() :
