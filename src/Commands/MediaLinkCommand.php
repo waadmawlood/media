@@ -28,24 +28,21 @@ class MediaLinkCommand extends Command
      */
     public function handle()
     {
-        $links = $this->links();
+        $link = $this->links();
+        $shortcut = $this->laravel['config']['media.shortcut'];
+        $link = realpath($link);
 
-        foreach($links as $value){
-            $link = $value['path'];
-            $shortcut = $value['shortcut'];
-
-            if (file_exists(public_path($shortcut)) && !$this->isRemovableSymlink($link, $this->option('force'))) {
-                $this->error("The [{$shortcut}] link already exists.");
-            }
-
-            if (is_link(public_path($shortcut))) {
-                $this->laravel->make('files')->delete($link);
-            }
-
-            $this->laravel->make('files')->link($link, public_path($shortcut));
-
-            $this->info("The [{$link}] link has been connected to [{$shortcut}].");
+        if (file_exists(public_path($shortcut)) && !$this->isRemovableSymlink($link, $this->option('force'))) {
+            $this->error("The [$shortcut] link already exists.");
         }
+
+        if (is_link(public_path($shortcut))) {
+            $this->laravel->make('files')->delete($link);
+        }
+
+        $this->laravel->make('files')->link($link, public_path($shortcut));
+
+        $this->info("The [$link] link has been connected to [Media Link].");
 
         $this->info('The links have been created.');
     }
@@ -53,19 +50,22 @@ class MediaLinkCommand extends Command
     /**
      * Get the symbolic links that are configured for the application.
      *
-     * @return array<string>
+     * @return string
      */
     protected function links()
     {
-        $disks = $this->laravel['config']['media.shortcut'];
+        $disk = $this->laravel['config']['media.disk'];
+        $root = $this->laravel['config']["filesystems.disks.$disk.root"];
+        $link = $this->laravel['config']['media.path'];
 
-        $links = array();
-        foreach ($disks as $disk => $shortcut) {
-            $root = $this->laravel['config']["filesystems.disks.$disk.root"];
-            $links[] = ['path' => realpath($root), 'shortcut' => $shortcut];
+        $path = $root.'/'.$link;
+
+        if (!is_dir($path)) {
+            mkdir($path, 775);
         }
 
-        return $links;
+        return $path ??
+            storage_path('app/public/upload');
     }
 
     /**

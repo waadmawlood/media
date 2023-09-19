@@ -2,33 +2,26 @@
 ![Logo](https://firebasestorage.googleapis.com/v0/b/beauty-jewel.appspot.com/o/github%2Fmedia%20logo.jpg?alt=media&token=a8be132e-94c5-4d31-8cd6-e17e57727dfb)
 
 
-# 🔥 Media Files Package
+# Media Package
 
-A Package to save your files Many Disks , Many Diroctories By Same Model
+A Package to save your files in one place can object has many or one media record.
 
 
 
-## ❤️ Authors
+## Authors
 
-- [Waad Mawlood](https://www.github.com/waadmawlood)
+- [@Waad Mawlood](https://www.github.com/waadmawlood)
 - waad_mawlood@outlook.com
 
 
-## ⚠️ Mini Requirement
+## Mini Requirement
 
-  #### * version >= 2.0.0
-- PHP >= 8.0.0
-- Laravel 8 , 9 , 10
-
-
-&nbsp;
-
-  #### * version < 2.0.0
-- PHP 7.4
-- Laravel 7 , 8
+ - PHP 7.4
+ - laravel 5.5
+ - illuminate/support 5.6 
 
 
-## 💯 Installation
+## Installation
 
 To install
 
@@ -36,7 +29,7 @@ To install
 composer require waad/media
 ```
 
-You can publish the `migration` and `config` with:
+You can publish the migration and config with:
 
 ```sh
 php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider"
@@ -52,48 +45,38 @@ configration from `config/media.php`
 php artisan migrate
 ```
 
-#### You can make a link shortcut by disk from `config.media.shortcut` array of disks
+#### You can make a link shortcut
 
 ```sh
 php artisan media:link
 ```
-## 🧰 Usage / Example
+## Usage / Example
 
-In **Model**
+In Model
 ```js
-<?php
-
 namespace App\Models;
 
+
 use Waad\Media\Traits\HasOneMedia;
-// or
+or
 use Waad\Media\Traits\HasManyMedia;
 
 class Post extends Model
 {
-    use HasOneMedia;       <<------ return one last record of media 
-    // or
-    use HasManyMedia;      <<------ return list of media
+    
+    use HasManyMedia;
 
-
-    // $media_disk
-    // $media_directory 
-    // if not define will get default `disk,directory`  in `config/media.php`
-    public $media_disk = 'public';
-    public $media_directory = 'posts/images';
     ......
 ```
 
-&nbsp;
 
 You Can get media
 
 ```js
 $post->media;
 ```
-&nbsp;
 
-- **`Upload Files`** eg. Use in controller `store` method to add One or Many Files
+use in controller `store` function to add One or Many images
 ```js
 $post = Post::create([
   ...........
@@ -101,28 +84,12 @@ $post = Post::create([
 
 $files = $request->file('image'); // one image
 $files = $request->file('images'); // many images
+$basename = $post->addMedia($files);  // return array of file names
 
-// version < 2 
-// will return array of file names
-$media = $post->addMedia($files); 
-$media = $post->addMedia($files, $index = 1, $label = 'cover'); 
-
-
-// ***************************************************
-
-
-// version >= 2 
-// will return Media model or array of Media model by on Relationship
-$media = $post->addMedia($files)->upload();
-$media = $post->addMedia($files)->label('cover')->index(3)->upload();
-$media = $post->addMedia($files)->disk('public')->directory('posts/video')->label('cover')->index(3)->upload();
-
-
-return $media;
+return $basename;
 ```
-&nbsp;
 
-- **`Sync Files`** eg. Use in controller `update` method to add One or Many Files
+use in controller `update` function to add One or Many images
 ```js
 $post = Post::find(1);
 $post->update([
@@ -131,125 +98,43 @@ $post->update([
 
 $files = $request->file('image'); // one image
 $files = $request->file('images'); // many images
+$basename = $post->syncMedia($files);  // return array of file names
 
-// version < 2 
-// will return array of file names
-$media = $post->syncMedia($files);
-$media = $post->syncMedia($files, $index = 2);
-
-
-// ***************************************************
-
-
-// version >= 2 
-// will return Media model or array of Media model by on Relationship
-$media = $post->syncMedia($files)->sync();
-$media = $post->syncMedia($files, $ids = [1,3])->sync(); // delete only these $ids and upload new files
-$media = $post->syncMedia($files)->label('cover')->index(3)->sync();
-$media = $post->syncMedia($files)->disk('public')->directory('posts/video')->label('cover')->index(3)->sync();
-
-return $media;
+return $basename;
 ```
 
-- **`Delete Files`** eg. Use in controller `destroy` method to delete all or specific ids
+use in controller `destroy` function to add One or Many images
 ```js
 
 $post = Post::find(1);
 
-// version < 2 
-// will return array of file names
-$media = $post->deleteMedia($files);
-$media = $post->deleteMedia($files, $index = 2);
+$post->deleteMedia(); // delete all media from this object
 
-
-// ***************************************************
-
-
-// version >= 2 
-// will return bool or array of bool or null by on Relationship
-$media = $post->deleteMedia()->delete();
-$media = $post->deleteMedia($medias_model)->delete();
-$media = $post->deleteMedia([1,3])->delete(); // delete only these ids
-
-$lastMedia = $post->media->last(); // return Collection Media Model 
-$media = $post->deleteMedia($lastMedia)->delete(); // delete only this media
-
-$media2 = $post->mediaById(8);
-$media = $post->deleteMedia($media2)->delete(); 
-
-$mediaList = $post->mediaByMimeType('image/png');
-$media = $post->deleteMedia($mediaList)->delete(); 
+$ids = [1,3];
+$post->deleteMedia($ids); // delete specific media by id from object
 
 $post->delete();
 ```
 
-&nbsp;
+---
 
-- Other Helper **`Only version >= 2`**
-```js
-// get sum files size of post object (bytes)
-$post->mediaTotalSize();
-
-//**********************************************
-
-// get count media of post object
-$post->mediaTotalCount();
-
-// get count media with soft delete of post object
-$post->mediaTotalCount($withTrashed = true);  
-
-//**********************************************
-
-// get media by id of post object
-$post->mediaById(17);
-
-// get media with soft delete by id of post object
-$post->mediaById(17, $withTrashed = true);    
-
-//**********************************************
-
-// get media by mime_type of post object
-$post->mediaByMimeType('image/png');
-
-// get media with soft delete by mime_type of post object
-$post->mediaByMimeType('image/png', $withTrashed = true);
-
-//**********************************************
-
-// get media by approved boolean of post object
-$post->mediaApproved();      // default true
-$post->mediaApproved(false);
-
-// get media with soft delete by approved boolean of post object
-$post->mediaApproved(false, $withTrashed = true);
-
-```
-
-&nbsp;
-
-- You can update `approved` all media of object
+You can update approved all media of object
 ```js
 $post->media->approve();   // put approved = true
 
 $post->media->disApprove();   // put approved = false
 ```
 
-&nbsp;
 
-- You can get the `user` to upload that media
+You can get the user to upload that media
 ```js
-// if was HasOneMedia
-1 - optional($post->media)->user;
-2 - Post::with('media.user')->find(1);
-
-//**********************************************
-
-// if was HasManyMedia
-1 - Post::with('media.user')->get();
-2 - $post->media->load('user');
+$post->media->user; 
+or
+Post::with('media.user')->find(1);
+Post::with('media.user')->get();
 ```
 
-### 🎀 Scope
+### Scope
 
 You can get only approved equal true
 
@@ -257,29 +142,6 @@ You can get only approved equal true
 $post->media->approved();  // approved = true
 ```
 
-## 🍔 Permanently delete files
-
-Determine `delete_file_after_day` from `config/media.php` must be integer
-
-⭕️ Add Command to crontab of project to implemented automatically
-
-in `app/Console/Kernel.php` add this:
-
-```js
-protected function schedule(Schedule $schedule)
-    {
-        // .....................
-
-        $schedule->command('media:prune')->daily();
-    }
-```
-
-⭕️ implemented manually
-
-```sh
-php artisan media:prune
-```
-
-## 🎯 License
+## License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)

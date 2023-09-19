@@ -2,8 +2,6 @@
 
 namespace Waad\Media\Traits;
 
-use Waad\Media\Media;
-
 trait HasOneMedia
 {
     use HasMedia;
@@ -11,10 +9,10 @@ trait HasOneMedia
     /**
      * Return last media for this model.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphOne
+     * @return MorphOne
      */
     public function media()
     {
-        return $this->morphOne(Media::class, 'model')->latest();
+        return $this->morphOne(config('media.media_class'), 'model')->latest();
     }
 }

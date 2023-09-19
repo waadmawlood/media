@@ -7,7 +7,7 @@ return [
     | Media waad/media package of laravel Configuration
     |--------------------------------------------------------------------------
     |
-    | Media package save all your file in one place
+    | meadia package save all your file in one place
     | any model will be in ralated has many of media
     |
     | To learn more: https://github.com/waadmawlood/media
@@ -15,26 +15,37 @@ return [
     */
 
     /*
-     * Default disk configration of path in file system in config/filesystem.php
+     * The comment class that should be used to store and retrieve
+     * the comments.
+     */
+    'media_class' => \Waad\Media\Media::class,
+
+    /*
+     * The user model that should be used when associating media with
+     * mediators. If null, the default user provider from your
+     * Laravel authentication configuration will be used.
+     */
+    'user_model' => null,
+
+    /*
+     * The disk configration of path in file system in config/filesystem.php
      */
     'disk' => 'public',
 
     /*
-     * Default path direction to save media
+     * path direction to save media
      */
-    'directory' => 'upload',
+    'path' => 'upload',
 
     /*
-     * Shortcut of disks to make direct shortcut to access disks must contain `root`
+     * Shortcut to make direct shortcut to access media
      */
-    'shortcut' => [
-        'public' => 'media',
-    ],
+    'shortcut' => 'media',
 
     /*
-     * The delete file is flag to delete file from server when delete media from DB prune Model
+     * The delete file is flag to delete file from server when delete media from DB
      */
-    'delete_file_after_day' => 30,
+    'delete_file' => false,
 
     /*
      * The default value of approved in table before migrate table media
@@ -53,8 +64,7 @@ return [
 
     /*
      * format dateTime of created_at and updated_at
-     * e.g. `Y-m-d h:i:s a` => 2022-09-15 07:25:13 pm
-     * e.g. `null` => timestamp
+     * e.g. 2022-09-15 07:25:13 pm
      */
     'format_date' => null,
 ];
