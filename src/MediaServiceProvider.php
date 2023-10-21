@@ -29,15 +29,15 @@ class MediaServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../config/config.php' => config_path('media.php'),
+            __DIR__ . '/../config/config.php' => config_path('media.php'),
         ], 'config');
 
+        $is_uuid = config('media.uuid', false);
+        $path = $is_uuid ? '/../database/migrations/create_media_uuid_table.php.stub' : '/../database/migrations/create_media_table.php.stub';
         if (!class_exists('CreateMediaTable')) {
             $this->publishes([
-                __DIR__.'/../database/migrations/create_media_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_media_table.php'),
+                __DIR__ . $path => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_media_table.php'),
             ], 'migrations');
         }
-
-
     }
 }

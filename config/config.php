@@ -15,6 +15,16 @@ return [
     */
 
     /*
+    * The model you want to use as a Media model
+    */
+    'model' => Waad\Media\Media::class,
+
+    /*
+    * Enable Uuid Type only migration related `Uuid`, `nullableUuidMorphs` and `uuidMorphs`
+    */
+    'uuid' => false,
+
+    /*
      * Default disk configration of path in file system in config/filesystem.php
      */
     'disk' => 'public',

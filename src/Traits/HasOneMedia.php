@@ -15,6 +15,6 @@ trait HasOneMedia
      */
     public function media()
     {
-        return $this->morphOne(Media::class, 'model')->latest();
+        return $this->morphOne(config('media.model', Media::class), 'model')->latest();
     }
 }
