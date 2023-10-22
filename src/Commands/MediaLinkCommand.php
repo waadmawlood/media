@@ -30,12 +30,18 @@ class MediaLinkCommand extends Command
     {
         $links = $this->links();
 
-        foreach($links as $value){
+        foreach ($links as $value) {
             $link = $value['path'];
             $shortcut = $value['shortcut'];
 
             if (file_exists(public_path($shortcut)) && !$this->isRemovableSymlink($link, $this->option('force'))) {
-                $this->error("The [{$shortcut}] link already exists.");
+                if ($this->option('force')) {
+                    unlink(public_path($shortcut));
+                    $this->info("The existing [{$shortcut}] link has been removed.");
+                } else {
+                    $this->error("The [{$shortcut}] link already exists. Use the --force option to recreate it.");
+                    continue;
+                }
             }
 
             if (is_link(public_path($shortcut))) {

@@ -13,7 +13,21 @@ class MediaServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'media');
+        if (!$this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->publishes([
+            __DIR__ . '/../config/config.php' => config_path('media.php'),
+        ], 'media-config');
+
+        $is_uuid = config('media.uuid', false);
+        $path = $is_uuid ? '/../database/migrations/create_media_uuid_table.php.stub' : '/../database/migrations/create_media_table.php.stub';
+        if (empty(glob(database_path('migrations/*_create_media_table.php')))) {
+            $this->publishes([
+                __DIR__ . $path => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_media_table.php'),
+            ], 'media-migrations');
+        }
     }
 
     /**
@@ -21,23 +35,10 @@ class MediaServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                MediaLinkCommand::class,
-                MediaPrune::class,
-            ]);
-        }
-
-        $this->publishes([
-            __DIR__ . '/../config/config.php' => config_path('media.php'),
-        ], 'config');
-
-        $is_uuid = config('media.uuid', false);
-        $path = $is_uuid ? '/../database/migrations/create_media_uuid_table.php.stub' : '/../database/migrations/create_media_table.php.stub';
-        if (!class_exists('CreateMediaTable')) {
-            $this->publishes([
-                __DIR__ . $path => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_media_table.php'),
-            ], 'migrations');
-        }
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'media');
+        $this->commands([
+            MediaLinkCommand::class,
+            MediaPrune::class,
+        ]);
     }
 }

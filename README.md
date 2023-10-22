@@ -36,15 +36,27 @@ To install
 composer require waad/media
 ```
 
-You can publish the `migration` and `config` with:
+**first** :
+publish the `config` with command:
 
 ```sh
-php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider"
+php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-config"
 ```
 
-configration from `config/media.php`
+configration from `config/media.php` sure from `uuid`, `shortcut` in config media
 
-----
+⚠️ clear cache important, before publish migrations
+```sh
+php artisan optimize
+```
+
+
+**Second** :
+publish the `migrations` with command:
+
+```sh
+php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-migrations"
+```
 
 #### You can migration
 
@@ -53,6 +65,14 @@ php artisan migrate
 ```
 
 #### You can make a link shortcut by disk from `config.media.shortcut` array of disks
+
+```js
+'shortcut' => [
+        'public' => 'media',
+        // disk => shortcut name
+    ],
+```
+
 
 ```sh
 php artisan media:link
