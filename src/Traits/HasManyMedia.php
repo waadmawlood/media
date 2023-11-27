@@ -18,6 +18,6 @@ trait HasManyMedia
      */
     public function media()
     {
-        return $this->morphMany(config('media.model', Media::class), 'model')->orderBy(config('media.order.column'), config('media.order.type'));
+        return $this->morphMany(config('media.model', Media::class), 'model')->orderBy(config('media.order')['column'] ?? 'id', config('media.order')['type'] ?? 'DESC');
     }
 }

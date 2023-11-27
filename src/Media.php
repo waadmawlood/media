@@ -3,67 +3,35 @@
 namespace Waad\Media;
 
 use DateTimeInterface;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Media extends Model
 {
-    use SoftDeletes;
-
-    /**
-     * fillable columns can insert and updated from user
-     * @var array
-     */
+    // fillable columns can insert and updated from user
     protected $fillable = [
         'base_name',
         'file_name',
-        'path',
         'index',
         'label',
-        'disk',
-        'directory',
         'mime_type',
         'file_size',
         'approved',
         'user_id',
-        'user_type',
     ];
 
-    /**
-     * @var array
-     */
-    protected $appends = ['url'];
+    protected $appends = ['path'];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'approved' => 'boolean',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'disk',
-        'directory',
-    ];
-
-    /**
      * Accessor to append path file from shortcut.
-     *
-     * @return string
      */
-    public function getUrlAttribute()
+    public function getPathAttribute()
     {
-        $disk = $this->attributes['disk'] ?? $this->getFromConfig('media.disk');
-        $directory = $this->attributes['directory'] ?? $this->getFromConfig('media.directory');
-        $shortcut = $this->getFromConfig("media.shortcut.{$disk}");
-        $basename = $this->attributes['base_name'] ?? null;
-
-        return $basename ? sprintf('%s/%s', url("{$shortcut}/{$directory}/"), $basename) : null;
+        return sprintf('%s/%s', url($this->getFromConfig('media.shortcut')), $this->attributes['base_name']);
     }
 
     /**
@@ -74,7 +42,7 @@ class Media extends Model
     {
         $format = $this->getFromConfig('media.format_date');
 
-        return $format ? $date->format($this->getFromConfig('media.format_date')) : $date;
+        return $format ? $date->format($format) : $date;
     }
 
     /**
@@ -86,24 +54,16 @@ class Media extends Model
         return $query->where('approved', true);
     }
 
-    /**
-     * morph relationship with any table can use media with it
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
-     */
+    // morph relationship with any table can use media with it
     public function model()
     {
         return $this->morphTo('model');
     }
 
-    /**
-     * morph User OR Any Model Guard Authorization
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
-     */
+    // Has one user relationship with record media
     public function user()
     {
-        return $this->morphTo();
+        return $this->belongsTo($this->getAuthModelName(), 'user_id');
     }
 
     /**
@@ -132,14 +92,24 @@ class Media extends Model
         return $this;
     }
 
-    /**
-     * return from config
-     *
-     * @param string $value
-     * @return mixed
-     */
-    private function getFromConfig(string $value)
+    // Return user model there is in config/media.php => user_model
+    // can use any guard table in media
+    private function getAuthModelName()
     {
-        return config($value);
+        if (config('media.user_model')) {
+            return config('media.user_model');
+        }
+
+        if (!is_null(config('auth.providers.users.model'))) {
+            return config('auth.providers.users.model');
+        }
+
+        throw new Exception('Could not determine the user model name.');
+    }
+
+    // return from config
+    private function getFromConfig($value)
+    {
+        return (string) config($value);
     }
 }
