@@ -4,7 +4,7 @@
 
 # 🔥 Media Files Package
 
-A Package to save your files Many Disks , Many Diroctories By Same Model
+A Package to save your files Many Disks, Many Directories By Same Model
 
 
 
@@ -37,22 +37,22 @@ composer require waad/media
 ```
 
 **first** :
-publish the `config` with command:
+publish the `config` with the command:
 
 ```sh
 php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-config"
 ```
 
-configration from `config/media.php` sure from `uuid`, `shortcut` in config media
+configuration from `config/media.php` sure from `uuid`, `shortcut` in config media
 
-⚠️ clear cache important, before publish migrations
+⚠️ clear cache is important, before publishing migrations
 ```sh
 php artisan optimize
 ```
 
 
 **Second** :
-publish the `migrations` with command:
+publish the `migrations` with the command:
 
 ```sh
 php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-migrations"
@@ -123,7 +123,7 @@ $files = $request->file('image'); // one image
 $files = $request->file('images'); // many images
 
 // version < 2 
-// will return array of file names
+// will return an array of file names
 $media = $post->addMedia($files); 
 $media = $post->addMedia($files, $index = 1, $label = 'cover'); 
 
@@ -132,7 +132,7 @@ $media = $post->addMedia($files, $index = 1, $label = 'cover');
 
 
 // version >= 2 
-// will return Media model or array of Media model by on Relationship
+// will return the Media model or array of Media models on the Relationship
 $media = $post->addMedia($files)->upload();
 $media = $post->addMedia($files)->label('cover')->index(3)->upload();
 $media = $post->addMedia($files)->disk('public')->directory('posts/video')->label('cover')->index(3)->upload();
@@ -153,7 +153,7 @@ $files = $request->file('image'); // one image
 $files = $request->file('images'); // many images
 
 // version < 2 
-// will return array of file names
+// will return an array of file names
 $media = $post->syncMedia($files);
 $media = $post->syncMedia($files, $index = 2);
 
@@ -162,7 +162,7 @@ $media = $post->syncMedia($files, $index = 2);
 
 
 // version >= 2 
-// will return Media model or array of Media model by on Relationship
+// will return the Media model or array of Media Models on the Relationship
 $media = $post->syncMedia($files)->sync();
 $media = $post->syncMedia($files, $ids = [1,3])->sync(); // delete only these $ids and upload new files
 $media = $post->syncMedia($files)->label('cover')->index(3)->sync();
@@ -177,7 +177,7 @@ return $media;
 $post = Post::find(1);
 
 // version < 2 
-// will return array of file names
+// will return an array of file names
 $media = $post->deleteMedia($files);
 $media = $post->deleteMedia($files, $index = 2);
 
@@ -186,7 +186,7 @@ $media = $post->deleteMedia($files, $index = 2);
 
 
 // version >= 2 
-// will return bool or array of bool or null by on Relationship
+// will return a bool or array of bool or null by on Relationship
 $media = $post->deleteMedia()->delete();
 $media = $post->deleteMedia($medias_model)->delete();
 $media = $post->deleteMedia([1,3])->delete(); // delete only these ids
@@ -220,10 +220,10 @@ $post->mediaTotalCount($withTrashed = true);
 
 //**********************************************
 
-// get media by id of post object
+// get media by id of the post object
 $post->mediaById(17);
 
-// get media with soft delete by id of post object
+// get media with soft delete by id of the post object
 $post->mediaById(17, $withTrashed = true);    
 
 //**********************************************
@@ -231,23 +231,23 @@ $post->mediaById(17, $withTrashed = true);
 // get media by mime_type of post object
 $post->mediaByMimeType('image/png');
 
-// get media with soft delete by mime_type of post object
+// get media with soft delete by mime_type of the post object
 $post->mediaByMimeType('image/png', $withTrashed = true);
 
 //**********************************************
 
-// get media by approved boolean of post object
+// get media by approved boolean of the post object
 $post->mediaApproved();      // default true
 $post->mediaApproved(false);
 
-// get media with soft delete by approved boolean of post object
+// get media with soft delete by approved boolean of the post object
 $post->mediaApproved(false, $withTrashed = true);
 
 ```
 
 &nbsp;
 
-- You can update `approved` all media of object
+- You can update `approved` all media of the object
 ```js
 $post->media->approve();   // put approved = true
 
@@ -281,7 +281,7 @@ $post->media->approved();  // approved = true
 
 Determine `delete_file_after_day` from `config/media.php` must be integer
 
-⭕️ Add Command to crontab of project to implemented automatically
+⭕️ Add Command to the crontab of the project to implement automatically
 
 in `app/Console/Kernel.php` add this:
 
@@ -303,3 +303,7 @@ php artisan media:prune
 ## 🎯 License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=waadmawlood/media&type=Date)](https://star-history.com/#waadmawlood/media&Date)
