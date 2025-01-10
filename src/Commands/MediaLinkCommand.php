@@ -3,6 +3,7 @@
 namespace Waad\Media\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 
 class MediaLinkCommand extends Command
 {
@@ -30,27 +31,53 @@ class MediaLinkCommand extends Command
     {
         $links = $this->links();
 
+        if (empty($links)) {
+            $this->warn('No media shortcuts configured. Please check your media config file.');
+
+            return;
+        }
+
         foreach ($links as $value) {
+            if (! isset($value['path']) || ! isset($value['shortcut'])) {
+                $this->error('Invalid link configuration.');
+
+                continue;
+            }
+
             $link = $value['path'];
             $shortcut = $value['shortcut'];
 
-            if (file_exists(public_path($shortcut)) && !$this->isRemovableSymlink($link, $this->option('force'))) {
-                if ($this->option('force')) {
-                    unlink(public_path($shortcut));
+            if (! file_exists($link)) {
+                $this->error("The source path [{$link}] does not exist.");
+
+                continue;
+            }
+
+            $shortcutPath = public_path($shortcut);
+
+            if (file_exists($shortcutPath)) {
+                if (! $this->option('force')) {
+                    $this->error("The [{$shortcut}] link already exists. Use the --force option to recreate it.");
+
+                    continue;
+                }
+
+                if (is_link($shortcutPath)) {
+                    unlink($shortcutPath);
                     $this->info("The existing [{$shortcut}] link has been removed.");
                 } else {
-                    $this->error("The [{$shortcut}] link already exists. Use the --force option to recreate it.");
+                    $this->error("The [{$shortcut}] exists but is not a symbolic link.");
+
                     continue;
                 }
             }
 
-            if (is_link(public_path($shortcut))) {
-                $this->laravel->make('files')->delete($link);
+            try {
+                File::link($link, $shortcutPath);
+                $this->info("The [{$link}] link has been connected to [{$shortcut}].");
+            } catch (\Exception $e) {
+                $this->error("Failed to create symbolic link: {$e->getMessage()}");
             }
-
-            $this->laravel->make('files')->link($link, public_path($shortcut));
-
-            $this->info("The [{$link}] link has been connected to [{$shortcut}].");
         }
 
         $this->info('The links have been created.');
@@ -59,26 +86,20 @@ class MediaLinkCommand extends Command
     /**
      * Get the symbolic links that are configured for the application.
      *
-     * @return array<string>
+     * @return array<int, array<string, string>>
      */
-    protected function links()
+    protected function links(): array
     {
-        $disks = $this->laravel['config']['media.shortcut'];
+        $disks = $this->laravel['config']['media.shortcut'] ?? [];
+        $links = [];
 
-        $links = array();
         foreach ($disks as $disk => $shortcut) {
-            $root = $this->laravel['config']["filesystems.disks.$disk.root"];
-            $links[] = ['path' => realpath($root), 'shortcut' => $shortcut];
+            $root = $this->laravel['config']["filesystems.disks.$disk.root"] ?? null;
+            if ($root && ($realPath = realpath($root))) {
+                $links[] = ['path' => $realPath, 'shortcut' => $shortcut];
+            }
         }
 
         return $links;
-    }
-
-    /**
-     * Determine if the provided path is a symlink that can be removed.
-     */
-    protected function isRemovableSymlink(string $link, bool $force): bool
-    {
-        return is_link($link) && $force;
     }
 }

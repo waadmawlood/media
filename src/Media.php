@@ -4,82 +4,118 @@ namespace Waad\Media;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Media extends Model
 {
     use SoftDeletes;
 
-    /**
-     * fillable columns can insert and updated from user
-     * @var array
-     */
     protected $fillable = [
-        'base_name',
-        'file_name',
+        'basename',
+        'filename',
         'path',
         'index',
         'label',
+        'collection',
         'disk',
-        'directory',
-        'mime_type',
-        'file_size',
+        'bucket',
+        'mimetype',
+        'filesize',
         'approved',
-        'user_id',
-        'user_type',
+        'metadata',
     ];
 
-    /**
-     * @var array
-     */
-    protected $appends = ['url'];
+    protected $appends = ['full_url'];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'approved' => 'boolean',
+        'metadata' => 'json',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'disk',
-        'directory',
+        'bucket',
     ];
 
-    /**
-     * Accessor to append path file from shortcut.
-     *
-     * @return string
-     */
-    public function getUrlAttribute()
+    public function __construct(array $attributes = [])
     {
-        $disk = $this->attributes['disk'] ?? $this->getFromConfig('media.disk');
-        $directory = $this->attributes['directory'] ?? $this->getFromConfig('media.directory');
-        $shortcut = $this->getFromConfig("media.shortcut.{$disk}");
-        $basename = $this->attributes['base_name'] ?? null;
+        parent::__construct($attributes);
+        $this->setTable(config('media.table_name'));
 
-        return $basename ? sprintf('%s/%s', url("{$shortcut}/{$directory}/"), $basename) : null;
+        if (config('media.uuid', false)) {
+            $this->usesUniqueIds = true;
+        }
+    }
+
+    public function uniqueIds()
+    {
+        return config('media.uuid', false) ? [$this->getKeyName()] : [];
+    }
+
+    public function newUniqueId()
+    {
+        return config('media.uuid', false) ? (string) Str::orderedUuid() : null;
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        if (config('media.uuid', false)) {
+            if ($field && in_array($field, $this->uniqueIds()) && ! Str::isUuid($value)) {
+                throw (new ModelNotFoundException)->setModel(get_class($this), $value);
+            }
+
+            if (! $field && in_array($this->getRouteKeyName(), $this->uniqueIds()) && ! Str::isUuid($value)) {
+                throw (new ModelNotFoundException)->setModel(get_class($this), $value);
+            }
+        }
+
+        return parent::resolveRouteBindingQuery($query, $value, $field);
+    }
+
+    public function getKeyType()
+    {
+        if (config('media.uuid', false) && in_array($this->getKeyName(), $this->uniqueIds())) {
+            return 'string';
+        }
+
+        return $this->keyType;
+    }
+
+    public function getIncrementing()
+    {
+        if (config('media.uuid', false) && in_array($this->getKeyName(), $this->uniqueIds())) {
+            return false;
+        }
+
+        return $this->incrementing;
     }
 
     /**
-     * Format data time of columns that it's type is timestamp
-     * There is in config/media.php => format_date.
+     * Get the URL for accessing the media file
      */
-    public function serializeDate(DateTimeInterface $date)
+    public function getFullUrlAttribute(): ?string
     {
-        $format = $this->getFromConfig('media.format_date');
+        $disk = $this->disk ?? config('media.disk');
+        $bucket = $this->bucket ?? config('media.bucket');
+        $shortcut = config("media.shortcut.{$disk}");
 
-        return $format ? $date->format($this->getFromConfig('media.format_date')) : $date;
+        return $this->basename ? sprintf('%s/%s', url("{$shortcut}/{$bucket}/"), $this->basename) : null;
     }
 
     /**
-     * scope to return only records that it's approved => true
-     * use it e.g. $post->media->approved();.
+     * Format datetime for serialization
+     */
+    public function serializeDate(DateTimeInterface $date): string
+    {
+        $format = config('media.format_date');
+
+        return $format ? $date->format($format) : $date->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * Scope query to approved media only
      */
     public function scopeApproved($query)
     {
@@ -87,59 +123,38 @@ class Media extends Model
     }
 
     /**
-     * morph relationship with any table can use media with it
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * Get the parent model that owns the media
      */
-    public function model()
+    public function mediable(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
-        return $this->morphTo('model');
+        return $this->morphTo('mediable');
     }
 
     /**
-     * morph User OR Any Model Guard Authorization
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * Get the user that owns the media
      */
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
         return $this->morphTo();
     }
 
     /**
-     * Update all media of object approved = true
-     * use it e.g. $post->media->approve();.
+     * Mark media as approved
      */
-    public function approve()
+    public function approve(): self
     {
-        $this->update([
-            'approved' => true,
-        ]);
+        $this->update(['approved' => true]);
 
         return $this;
     }
 
     /**
-     * Update all media of object approved = false
-     * use it e.g. $post->media->disApprove();.
+     * Mark media as not approved
      */
-    public function disApprove()
+    public function disApprove(): self
     {
-        $this->update([
-            'approved' => false,
-        ]);
+        $this->update(['approved' => false]);
 
         return $this;
-    }
-
-    /**
-     * return from config
-     *
-     * @param string $value
-     * @return mixed
-     */
-    private function getFromConfig(string $value)
-    {
-        return config($value);
     }
 }

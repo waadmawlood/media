@@ -5,15 +5,18 @@ namespace Waad\Media\Services;
 class MediaPrunableService
 {
     private $model;
+
     private $dateSubDays;
+
     private $allFiles;
+
     private array $allPaths;
 
     public function __construct($model, $dateSubDays)
     {
         $this->model = $model;
         $this->dateSubDays = $dateSubDays;
-        $this->allPaths = array();
+        $this->allPaths = [];
     }
 
     /**
@@ -32,7 +35,6 @@ class MediaPrunableService
         return $this;
     }
 
-
     /**
      * paths
      *
@@ -41,7 +43,7 @@ class MediaPrunableService
     public function paths()
     {
         foreach ($this->allFiles as $file) {
-            $path = $this->getRootDisk($file->disk) . DIRECTORY_SEPARATOR . $file->path;
+            $path = $this->getRootDisk($file->disk).DIRECTORY_SEPARATOR.$file->path;
             $this->allPaths[] = $path;
         }
 
@@ -55,8 +57,8 @@ class MediaPrunableService
      */
     public function delete()
     {
-        foreach($this->allPaths as $path){
-            if(file_exists($path)){
+        foreach ($this->allPaths as $path) {
+            if (file_exists($path)) {
                 unlink($path);
             }
         }
@@ -67,18 +69,19 @@ class MediaPrunableService
     /**
      * Get Root Disk
      *
-     * @param string $disk
      * @return string
      */
     private function getRootDisk(string $disk)
     {
         $configDisk = config("filesystems.disks.{$disk}", null);
 
-        if (blank($configDisk) || ! is_array($configDisk))
+        if (blank($configDisk) || ! is_array($configDisk)) {
             return storage_path($disk);
+        }
 
-        if(! array_key_exists('root', $configDisk))
+        if (! array_key_exists('root', $configDisk)) {
             return storage_path($disk);
+        }
 
         return $configDisk['root'];
     }

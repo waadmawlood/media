@@ -2,36 +2,74 @@
 
 namespace Waad\Media\Helpers;
 
-use Waad\Media\DTO\FileDTO;
 use Illuminate\Http\UploadedFile;
+use Waad\Media\Dto\MediaDto;
 
 class Files
 {
     /**
-     * upload File
-     *
-     * @param UploadedFile $file
-     * @param string $direction
-     * @param string $disk
-     * @return FileDTO|null
+     * Upload file and return MediaDto with metadata
      */
-    public static function uploadFile(UploadedFile $file, string $direction = 'upload', string $disk = 'public')
+    public static function uploadFile(UploadedFile $file, string $bucket = 'upload', string $disk = 'public'): ?MediaDto
     {
-        if ($file->isValid()) {
-            $path = $file->store($direction, $disk);
-
-            if (!$path)
-                return null;
-
-            $fileDto = new FileDTO($path);
-            $fileDto->filename = $file->getClientOriginalName();
-            $fileDto->extension = $file->extension();
-            $fileDto->fileSize = $file->getSize();
-            $fileDto->mimeType = $file->getMimeType();
-
-            return $fileDto;
+        if (! $file->isValid()) {
+            return null;
         }
 
-        return null;
+        $path = $file->store($bucket, ['disk' => $disk]);
+
+        if (! $path) {
+            return null;
+        }
+
+        $fileDto = new MediaDto($path);
+        $fileDto->filename = $file->getClientOriginalName();
+        $fileDto->extension = $file->extension();
+        $fileDto->fileSize = $file->getSize();
+        $fileDto->mimeType = $file->getMimeType();
+
+        $mimeType = explode('/', $fileDto->mimeType)[0];
+
+        if ($mimeType === 'image') {
+            try {
+                $dimensions = @getimagesize($file->getRealPath());
+                if ($dimensions) {
+                    $fileDto->metadata = [
+                        'width' => $dimensions[0],
+                        'height' => $dimensions[1],
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to get image dimensions: '.$e->getMessage());
+            } finally {
+                // Clean up memory
+                if (isset($dimensions)) {
+                    unset($dimensions);
+                }
+                gc_collect_cycles();
+            }
+        }
+
+        return $fileDto;
+    }
+
+    public static function getFileMetadata(string $mimeType, string $path): ?array
+    {
+        if ($mimeType !== 'image') {
+            return null;
+        }
+
+        $dimensions = getimagesize($path);
+        if (! $dimensions) {
+            return null;
+        }
+
+        return [
+            'width' => $dimensions[0],
+            'height' => $dimensions[1],
+            'mime' => $dimensions['mime'],
+            'bits' => $dimensions['bits'] ?? null,
+            'channels' => $dimensions['channels'] ?? null,
+        ];
     }
 }

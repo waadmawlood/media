@@ -1,0 +1,7 @@
+/vendor
+/composer.lock
+/.phpunit.cache
+.vscode
+/tests/temp
+/tests/database/database.sqlite
+/build

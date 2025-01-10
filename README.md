@@ -1,309 +1,238 @@
-
 ![Logo](https://firebasestorage.googleapis.com/v0/b/beauty-jewel.appspot.com/o/github%2Fmedia%20logo.jpg?alt=media&token=a8be132e-94c5-4d31-8cd6-e17e57727dfb)
-
 
 # 🔥 Media Files Package
 
-A Package to save your files Many Disks, Many Directories By Same Model
-
-
+A Laravel package for managing media files across multiple disks and buckets with model relationships. An alternative to [spatie/laravel-medialibrary](https://github.com/spatie/laravel-medialibrary)
 
 ## ❤️ Authors
 
 - [Waad Mawlood](https://www.github.com/waadmawlood)
 - waad_mawlood@outlook.com
 
+## ⚠️ Requirements
 
-## ⚠️ Mini Requirement
-
-  #### * version >= 2.0.0
-- PHP >= 8.0.0
-- Laravel 8 , 9 , 10
-
-
-&nbsp;
-
-  #### * version < 2.0.0
-- PHP 7.4
-- Laravel 7 , 8
-
+- PHP >= 8.0.0 
+- Laravel 8, 9, 10, 11
 
 ## 💯 Installation
 
-To install
+1. Install via Composer:
+    ```bash
+    composer require waad/media
+    ```
 
-```sh
-composer require waad/media
-```
+2. Publish the configuration file:
+    ```bash
+    php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider"
+    ```
 
-**first** :
-publish the `config` with the command:
-
-```sh
-php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-config"
-```
-
-configuration from `config/media.php` sure from `uuid`, `shortcut` in config media
-
-⚠️ clear cache is important, before publishing migrations
-```sh
-php artisan optimize
-```
+3. Edit the config file: `config/media.php`
 
 
-**Second** :
-publish the `migrations` with the command:
+4. Run the migrations:
+    ```bash
+    php artisan migrate
+    ```
 
-```sh
-php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider" --tag="media-migrations"
-```
+## 🚀 Usage
 
-#### You can migration
+### Adding Media to a Model
 
-```sh
-php artisan migrate
-```
-
-#### You can make a link shortcut by disk from `config.media.shortcut` array of disks
-
-```js
-'shortcut' => [
-        'public' => 'media',
-        // disk => shortcut name
-    ],
-```
-
-
-```sh
-php artisan media:link
-```
-## 🧰 Usage / Example
-
-In **Model**
-```js
-<?php
-
-namespace App\Models;
-
-use Waad\Media\Traits\HasOneMedia;
-// or
-use Waad\Media\Traits\HasManyMedia;
+1. Use the `HasMedia` trait in your model:
+```php
+use Waad\Media\HasMedia;
 
 class Post extends Model
 {
-    use HasOneMedia;       <<------ return one last record of media 
-    // or
-    use HasManyMedia;      <<------ return list of media
+    use HasMedia;
 
-
-    // $media_disk
-    // $media_directory 
-    // if not define will get default `disk,directory`  in `config/media.php`
-    public $media_disk = 'public';
-    public $media_directory = 'posts/images';
-    ......
-```
-
-&nbsp;
-
-You Can get media
-
-```js
-$post->media;
-```
-&nbsp;
-
-- **`Upload Files`** eg. Use in controller `store` method to add One or Many Files
-```js
-$post = Post::create([
-  ...........
-]);
-
-$files = $request->file('image'); // one image
-$files = $request->file('images'); // many images
-
-// version < 2 
-// will return an array of file names
-$media = $post->addMedia($files); 
-$media = $post->addMedia($files, $index = 1, $label = 'cover'); 
-
-
-// ***************************************************
-
-
-// version >= 2 
-// will return the Media model or array of Media models on the Relationship
-$media = $post->addMedia($files)->upload();
-$media = $post->addMedia($files)->label('cover')->index(3)->upload();
-$media = $post->addMedia($files)->disk('public')->directory('posts/video')->label('cover')->index(3)->upload();
-
-
-return $media;
-```
-&nbsp;
-
-- **`Sync Files`** eg. Use in controller `update` method to add One or Many Files
-```js
-$post = Post::find(1);
-$post->update([
-  ...........
-]);
-
-$files = $request->file('image'); // one image
-$files = $request->file('images'); // many images
-
-// version < 2 
-// will return an array of file names
-$media = $post->syncMedia($files);
-$media = $post->syncMedia($files, $index = 2);
-
-
-// ***************************************************
-
-
-// version >= 2 
-// will return the Media model or array of Media Models on the Relationship
-$media = $post->syncMedia($files)->sync();
-$media = $post->syncMedia($files, $ids = [1,3])->sync(); // delete only these $ids and upload new files
-$media = $post->syncMedia($files)->label('cover')->index(3)->sync();
-$media = $post->syncMedia($files)->disk('public')->directory('posts/video')->label('cover')->index(3)->sync();
-
-return $media;
-```
-
-- **`Delete Files`** eg. Use in controller `destroy` method to delete all or specific ids
-```js
-
-$post = Post::find(1);
-
-// version < 2 
-// will return an array of file names
-$media = $post->deleteMedia($files);
-$media = $post->deleteMedia($files, $index = 2);
-
-
-// ***************************************************
-
-
-// version >= 2 
-// will return a bool or array of bool or null by on Relationship
-$media = $post->deleteMedia()->delete();
-$media = $post->deleteMedia($medias_model)->delete();
-$media = $post->deleteMedia([1,3])->delete(); // delete only these ids
-
-$lastMedia = $post->media->last(); // return Collection Media Model 
-$media = $post->deleteMedia($lastMedia)->delete(); // delete only this media
-
-$media2 = $post->mediaById(8);
-$media = $post->deleteMedia($media2)->delete(); 
-
-$mediaList = $post->mediaByMimeType('image/png');
-$media = $post->deleteMedia($mediaList)->delete(); 
-
-$post->delete();
-```
-
-&nbsp;
-
-- Other Helper **`Only version >= 2`**
-```js
-// get sum files size of post object (bytes)
-$post->mediaTotalSize();
-
-//**********************************************
-
-// get count media of post object
-$post->mediaTotalCount();
-
-// get count media with soft delete of post object
-$post->mediaTotalCount($withTrashed = true);  
-
-//**********************************************
-
-// get media by id of the post object
-$post->mediaById(17);
-
-// get media with soft delete by id of the post object
-$post->mediaById(17, $withTrashed = true);    
-
-//**********************************************
-
-// get media by mime_type of post object
-$post->mediaByMimeType('image/png');
-
-// get media with soft delete by mime_type of the post object
-$post->mediaByMimeType('image/png', $withTrashed = true);
-
-//**********************************************
-
-// get media by approved boolean of the post object
-$post->mediaApproved();      // default true
-$post->mediaApproved(false);
-
-// get media with soft delete by approved boolean of the post object
-$post->mediaApproved(false, $withTrashed = true);
-
-```
-
-&nbsp;
-
-- You can update `approved` all media of the object
-```js
-$post->media->approve();   // put approved = true
-
-$post->media->disApprove();   // put approved = false
-```
-
-&nbsp;
-
-- You can get the `user` to upload that media
-```js
-// if was HasOneMedia
-1 - optional($post->media)->user;
-2 - Post::with('media.user')->find(1);
-
-//**********************************************
-
-// if was HasManyMedia
-1 - Post::with('media.user')->get();
-2 - $post->media->load('user');
-```
-
-### 🎀 Scope
-
-You can get only approved equal true
-
-```js
-$post->media->approved();  // approved = true
-```
-
-## 🍔 Permanently delete files
-
-Determine `delete_file_after_day` from `config/media.php` must be integer
-
-⭕️ Add Command to the crontab of the project to implement automatically
-
-in `app/Console/Kernel.php` add this:
-
-```js
-protected function schedule(Schedule $schedule)
+    // Default collection with depend on default value in config/media.php
+    public function registerCollections(array $attributes = []): array
     {
-        // .....................
-
-        $schedule->command('media:prune')->daily();
+        return [
+            'default' => [
+                'disk' => 'public',
+                'bucket' => 'upload',
+                'label' => null,
+                'single' => false,
+            ]
+        ];
     }
+}
 ```
 
-⭕️ implemented manually
+2. Basic media operations:
+```php
+// Add single file
+$post->addMedia($request->file('image'))->upload();
 
-```sh
-php artisan media:prune
+// Add multiple files
+$post->addMedia($request->file('images'))->upload();
+
+// Add with custom collection
+$post->addMedia($request->file('image'))
+    ->collection('avatars')
+    ->upload();
+
+// Add with custom label
+$post->addMedia($request->file('image'))
+    ->label('Profile Picture')
+    ->upload();
+
+// Add with custom collection and label and index
+$post->addMedia($request->file('image'))
+    ->collection('avatars')
+    ->label('Profile Picture')
+    ->index(3)
+    ->upload();
 ```
 
-## 🎯 License
+### Media Collections
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+Can register custom collections in your model to define specific media groups:
+```php
+public function registerCollections(array $attributes = []): array
+{
+    return [
+        'avatars' => [
+            'disk' => 's3',
+            'bucket' => 'profile-pictures',
+            'label' => 'User Avatars',
+            'single' => true, // Only one file allowed
+        ],
+        'gallery' => [
+            'disk' => 'public',
+            'bucket' => 'photos',
+            'label' => 'Photo Gallery',
+            'single' => false, // Multiple files allowed
+        ]
+    ];
+}
+```
 
-## Star History
+### Retrieving Media
 
-[![Star History Chart](https://api.star-history.com/svg?repos=waadmawlood/media&type=Date)](https://star-history.com/#waadmawlood/media&Date)
+```php
+// Get all media
+$allMedia = $post->getMedia();
+
+// Get media from specific collection
+$avatars = $post->getCollection('avatars');
+
+// Get first or last media
+$firstMedia = $post->getFirstMedia();
+$lastMedia = $post->getLastMedia();
+
+// Check if has media
+$hasAvatars = $post->hasMedia('avatars');
+
+// Get by ID
+$media = $post->mediaById($id);
+
+// Get by mime type
+$images = $post->mediaByMimeType('image/jpeg');
+
+// Get approved media
+$approved = $post->mediaApproved();
+
+// Get media stats
+$totalSize = $post->mediaTotalSize();
+$totalCount = $post->mediaTotalCount();
+```
+
+### Managing Media
+
+```php
+****** Sync Media ******
+// Sync media (replace existing)
+$post->syncMedia($request->file('images'))->sync();
+// Sync media (replace existing) with specific ids
+$post->syncMedia($request->file('images'), ids: [1, 2, 3])->sync();
+// Sync media (replace existing) with specific models
+$post->syncMedia($request->file('images'), models: [$mediaModel1, $mediaModel2])->sync();
+
+****** Delete Media ******
+// Delete specific media
+$post->deleteMedia($mediaId)->delete();
+// Delete media by model
+$post->deleteMedia($mediaModel)->delete();
+// Delete all media
+$post->deleteMedia()->delete();
+
+// Approve/Disapprove media
+$media->approve();
+$media->disApprove();
+```
+
+## ⚙️ Configuration
+
+You can customize the package behavior in `config/media.php`:
+
+```php
+return [
+    // Media model class
+    'model' => Waad\Media\Media::class,
+
+    // Database table name
+    'table_name' => 'media',
+
+    // Enable UUID for media records
+    'uuid' => false,
+
+    // Default storage settings
+    'disk' => env('MEDIA_DISK', 'public'),
+    'bucket' => env('MEDIA_BUCKET', 'upload'),
+    'default_collection' => env('MEDIA_DEFAULT_COLLECTION', 'default'),
+
+    // File management
+    'delete_file_after_day' => env('MEDIA_DELETE_FILE_AFTER_DAY', 30),
+    'default_approved' => env('MEDIA_DEFAULT_APPROVED', true),
+
+    // Date format for timestamps
+    'format_date' => env('MEDIA_DATE_FORMAT', null),
+];
+```
+
+## 🔒 Media Model Attributes
+
+The Media model includes the following attributes:
+
+- `basename`: The base name of the file
+- `filename`: Original file name
+- `path`: File path in storage
+- `index`: Order index
+- `label`: Custom label
+- `collection`: Collection name
+- `disk`: Storage disk
+- `bucket`: Storage bucket
+- `mimetype`: File MIME type
+- `filesize`: File size in bytes
+- `approved`: Approval status
+- `metadata`: Additional JSON metadata
+- `full_url`: Complete URL to access the file
+
+## 🌟 Features
+
+- ✅ Multiple file upload support
+- ✅ Support storage configuration (local)
+- ☑️ Support storage configuration (S3) (coming soon)
+- ✅ Collection management
+- ✅ Soft deletes
+- ✅ File approval system
+- ✅ UUID support
+- ✅ Custom metadata for Image (ex: width, height, etc.)
+- ✅ Automatic file cleanup
+- ✅ Media relationships
+- ✅ File statistics
+
+
+## 🧪 Testing
+
+```bash
+composer install
+./vendor/bin/pest
+```
+
+## 📝 License
+
+[MIT](LICENSE.md) © Waad Mawlood

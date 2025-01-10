@@ -1,70 +1,66 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
-    | Media waad/media package of laravel Configuration
+    | Media Package Configuration
     |--------------------------------------------------------------------------
     |
-    | Media package save all your file in one place
-    | any model will be in ralated has many of media
-    |
-    | To learn more: https://github.com/waadmawlood/media
+    | This configuration file contains all the settings for the waad/media package.
+    | Customize these values according to your application's needs.
     |
     */
 
     /*
-    * The model you want to use as a Media model
+    |--------------------------------------------------------------------------
+    | Media Model Configuration
+    |--------------------------------------------------------------------------
     */
     'model' => Waad\Media\Media::class,
 
     /*
-    * Enable Uuid Type only migration related `Uuid`, `nullableUuidMorphs` and `uuidMorphs`
+    |--------------------------------------------------------------------------
+    | Database Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the table name used for storing media records.
+    */
+    'table_name' => 'media',
+
+    /*
+    |--------------------------------------------------------------------------
+    | UUID Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Enable UUID for media records. When enabled, media records will use UUID
+    | for their primary keys instead of auto-incrementing integers.
     */
     'uuid' => false,
 
     /*
-     * Default disk configration of path in file system in config/filesystem.php
-     */
-    'disk' => 'public',
+    |--------------------------------------------------------------------------
+    | Storage Configuration
+    |--------------------------------------------------------------------------
+    */
+    'disk' => env('MEDIA_DISK', 'public'),
+    'bucket' => env('MEDIA_BUCKET', 'upload'),
+    'default_collection' => env('MEDIA_DEFAULT_COLLECTION', 'default'),
 
     /*
-     * Default path direction to save media
-     */
-    'directory' => 'upload',
+    |--------------------------------------------------------------------------
+    | File Management Configuration
+    |--------------------------------------------------------------------------
+    */
+    'delete_file_after_day' => env('MEDIA_DELETE_FILE_AFTER_DAY', 30),
+    'default_approved' => env('MEDIA_DEFAULT_APPROVED', true),
 
     /*
-     * Shortcut of disks to make direct shortcut to access disks must contain `root`
-     */
-    'shortcut' => [
-        'public' => 'media',
-    ],
-
-    /*
-     * The delete file is flag to delete file from server when delete media from DB prune Model
-     */
-    'delete_file_after_day' => 30,
-
-    /*
-     * The default value of approved in table before migrate table media
-     */
-    'default_approved' => true,
-
-    /*
-     * The order by of get media ASC or DESC
-     * type => DESC, desc, ASC, asc
-     * column => id, base_name, file_name, approved, mime_type, file_size, user_id, created_at, updated_at
-     */
-    'order' => [
-        'type' => 'desc',
-        'column' => 'created_at',
-    ],
-
-    /*
-     * format dateTime of created_at and updated_at
-     * e.g. `Y-m-d h:i:s a` => 2022-09-15 07:25:13 pm
-     * e.g. `null` => timestamp
-     */
-    'format_date' => null,
+    |--------------------------------------------------------------------------
+    | Date Format Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the date format for created_at and updated_at timestamps.
+    | Set to null to use raw timestamps.
+    */
+    'format_date' => env('MEDIA_DATE_FORMAT', null),
 ];

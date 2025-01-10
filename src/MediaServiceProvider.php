@@ -13,19 +13,19 @@ class MediaServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 
         $this->publishes([
-            __DIR__ . '/../config/config.php' => config_path('media.php'),
+            __DIR__.'/../config/config.php' => config_path('media.php'),
         ], 'media-config');
 
         $is_uuid = config('media.uuid', false);
-        $path = $is_uuid ? '/../database/migrations/create_media_uuid_table.php.stub' : '/../database/migrations/create_media_table.php.stub';
+        $path = $is_uuid ? '/../database/migrations/create_media_uuid_table.php' : '/../database/migrations/create_media_table.php';
         if (empty(glob(database_path('migrations/*_create_media_table.php')))) {
             $this->publishes([
-                __DIR__ . $path => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_media_table.php'),
+                __DIR__.$path => database_path('migrations/'.date('Y_m_d_His', time()).'_create_media_table.php'),
             ], 'media-migrations');
         }
     }
@@ -35,7 +35,6 @@ class MediaServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'media');
         $this->commands([
             MediaLinkCommand::class,
             MediaPrune::class,
