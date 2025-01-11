@@ -4,11 +4,12 @@ namespace Waad\Media\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Waad\Media\Contracts\MediaService as MediaServiceInterface;
 use Waad\Media\Dto\MediaDto;
 use Waad\Media\Helpers\Files;
 use Waad\Media\Media;
 
-class MediaUploading extends MediaService
+class MediaLocalService extends MediaService implements MediaServiceInterface
 {
     private bool $isList;
 

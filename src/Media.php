@@ -27,7 +27,10 @@ class Media extends Model
         'metadata',
     ];
 
-    protected $appends = ['full_url'];
+    protected $appends = [
+        'full_url',
+        'temporary_url',
+    ];
 
     protected $casts = [
         'approved' => 'boolean',
@@ -93,10 +96,30 @@ class Media extends Model
     }
 
     /**
-     * Get the URL for accessing the media file
+     * Get the public full URL for accessing the media file
      */
     public function getFullUrlAttribute(): ?string
     {
+        if (! config('media.enable_full_url', true)) {
+            return null;
+        }
+
+        $disk = $this->disk ?? config('media.disk');
+        $bucket = $this->bucket ?? config('media.bucket');
+        $shortcut = config("media.shortcut.{$disk}");
+
+        return $this->basename ? sprintf('%s/%s', url("{$shortcut}/{$bucket}/"), $this->basename) : null;
+    }
+
+    /**
+     * Get the private temporary URL for accessing the media file
+     */
+    public function getTemporaryUrlAttribute(): ?string
+    {
+        if (! config('media.enable_temporary_url', true)) {
+            return null;
+        }
+
         $disk = $this->disk ?? config('media.disk');
         $bucket = $this->bucket ?? config('media.bucket');
         $shortcut = config("media.shortcut.{$disk}");

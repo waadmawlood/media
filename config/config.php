@@ -48,6 +48,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | S3 Configuration
+    |--------------------------------------------------------------------------
+    */
+    's3' => [
+        // Default TTL for temporary URLs in minutes
+        'default_ttl_temporary_url' => env('MEDIA_DEFAULT_S3_TTL_TEMPORARY_URL', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Enable appends full URL and temporary URL for media
+    |--------------------------------------------------------------------------
+    */
+    'enable_full_url' => env('MEDIA_ENABLE_FULL_URL', true),
+    'enable_temporary_url' => env('MEDIA_ENABLE_TEMPORARY_URL', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | File Management Configuration
     |--------------------------------------------------------------------------
     */

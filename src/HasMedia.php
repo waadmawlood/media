@@ -5,7 +5,7 @@ namespace Waad\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Waad\Media\Services\MediaDeletingService;
-use Waad\Media\Services\MediaUploading;
+use Waad\Media\Services\MediaLocalService;
 
 trait HasMedia
 {
@@ -16,9 +16,9 @@ trait HasMedia
      *
      * @param  UploadedFile|array<UploadedFile>|null  $files
      */
-    public function addMedia(UploadedFile|array|null $files): MediaUploading
+    public function addMedia(UploadedFile|array|null $files): MediaLocalService
     {
-        return new MediaUploading($this, $files);
+        return new MediaLocalService($this, $files);
     }
 
     /**
@@ -27,7 +27,7 @@ trait HasMedia
      * @param  UploadedFile|array<UploadedFile>|null  $files
      * @param  array<int>  $ids
      */
-    public function syncMedia(UploadedFile|array|null $files = null, array $ids = []): MediaUploading
+    public function syncMedia(UploadedFile|array|null $files = null, array $ids = []): MediaLocalService
     {
         $this->deleteMedia($ids)->delete();
 
@@ -208,6 +208,9 @@ trait HasMedia
                 'bucket' => config('media.bucket', 'upload'),
                 'label' => null,
                 'single' => false,
+                's3' => [
+                    'ttl_temporary_url' => config('media.s3.default_ttl_temporary_url', 5),
+                ]
             ],
         ];
     }
