@@ -158,9 +158,36 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
 
     protected function uploadFiles(): Collection|Media|null
     {
+        $this->deleteOldMediaIfSingleCollection();
+
         return $this->isList
             ? $this->uploadManyFiles()
             : $this->uploadOneFile();
+    }
+
+    private function deleteOldMediaIfSingleCollection(): void
+    {
+        $registers = $this->getRegisterMediaCollections();
+        $collection = $this->getCollection();
+
+        if (blank($registers) || blank($collection)) {
+            return;
+        }
+
+        $register = $registers[$collection] ?? null;
+        $isSingle = $register['single'] ?? false;
+
+        if (blank($register) || ! $isSingle) {
+            return;
+        }
+
+        $this->getModel()->media()
+            ->where('collection', $collection)
+            ->get()
+            ->each(function (Media $media) {
+                Storage::disk($media->disk)->delete($media->path);
+                $media->delete();
+            });
     }
 
     private function uploadOneFile(?UploadedFile $file = null): ?Media
