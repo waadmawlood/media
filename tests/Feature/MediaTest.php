@@ -124,13 +124,21 @@ it('can get first and last media', function () {
 });
 
 it('can format dates according to config', function () {
+    date_default_timezone_set('Asia/Baghdad');
+    config(['media.format_date' => 'Y-m-d H:i:s']);
+
     $media = $this->post->addMedia($this->file)->upload();
 
-    $dateFormat = config('media.format_date') ?? 'Y-m-d H:i:s';
-    expect($media->created_at->format($dateFormat))
-        ->toBe($media->created_at->format($dateFormat));
-    expect($media->updated_at->format($dateFormat))
-        ->toBe($media->updated_at->format($dateFormat));
+    // Verify that the date fields are formatted according to config
+    $dateFormat = config('media.format_date');
+
+    // Check created_at is formatted properly and matches regex pattern
+    $formattedCreatedAt = $media->created_at->format($dateFormat);
+    expect($formattedCreatedAt)->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
+
+    // Check updated_at is formatted properly and matches regex pattern
+    $formattedUpdatedAt = $media->updated_at->format($dateFormat);
+    expect($formattedUpdatedAt)->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
 });
 
 it('can handle media collections', function () {

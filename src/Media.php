@@ -95,7 +95,7 @@ class Media extends Model
     {
         $format = config('media.format_date');
 
-        return $format ? $date->format($format) : $date->format('Y-m-d H:i:s');
+        return $format ? $date->format($format) : parent::serializeDate($date);
     }
 
     /**

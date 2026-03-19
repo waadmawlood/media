@@ -85,6 +85,15 @@ return [
     |
     | Configure the date format for created_at and updated_at timestamps.
     | Set to null to use raw timestamps.
+    | Default: null return example `2026-03-19T12:03:15.000000Z`
+    |
+    | Example: 'Y-m-d H:i:s'
+    | Supported formats:
+    | - Y-m-d H:i:s return example `2026-03-19 12:03:15`
+    | - Y-m-d return example `2026-03-19`
+    | - Y-m-d H:i return example `2026-03-19 12:03`
+    | - Y-m-d H:i:s.u return example `2026-03-19 12:03:15.000000`
+    | - Y-m-d H:i:s.u return example `2026-03-19 12:03:15.000000`
     */
     'format_date' => env('MEDIA_DATE_FORMAT', null),
 ];
