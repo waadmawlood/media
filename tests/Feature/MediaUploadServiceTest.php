@@ -28,12 +28,6 @@ it('can get file size', function () {
     $media = $service->upload();
 
     expect($service->fileSize($media->path))->toBeGreaterThan(0);
-});
-
-it('returns null for file size of non-existent file', function () {
-    $service = $this->post->addMedia($this->file);
-    $service->upload();
-
     expect($service->fileSize('nonexistent/file.jpg'))->toBeNull();
 });
 
@@ -43,15 +37,9 @@ it('can get file metadata', function () {
 
     $metadata = $service->fileMetadata($media->path);
 
-    expect($metadata)->toBeArray()
-        ->toHaveKeys(['size', 'mimetype', 'last_modified']);
+    expect($metadata)->toBeArray()->toHaveKeys(['size', 'mimetype', 'last_modified']);
     expect($metadata['size'])->toBeGreaterThan(0);
     expect($metadata['mimetype'])->toBe('image/jpeg');
-});
-
-it('returns null for metadata of non-existent file', function () {
-    $service = $this->post->addMedia($this->file);
-    $service->upload();
 
     expect($service->fileMetadata('nonexistent/file.jpg'))->toBeNull();
 });
@@ -65,39 +53,20 @@ it('can delete file from disk', function () {
     expect($service->fileExists($media->path))->toBeFalse();
 });
 
-it('returns false for fileExists when checking non-existent path', function () {
-    $service = $this->post->addMedia($this->file);
-    $service->upload();
-
-    expect($service->fileExists('does/not/exist.jpg'))->toBeFalse();
-});
-
-it('can set disk via fluent api', function () {
+it('can chain fluent methods for disk, bucket, label, and index', function () {
     Storage::fake('custom');
     $service = $this->post->addMedia($this->file);
-    $media = $service->disk('custom')->upload();
-
-    expect($media->disk)->toBe('custom');
-});
-
-it('can set bucket via fluent api', function () {
-    $service = $this->post->addMedia($this->file);
-    $media = $service->bucket('my-bucket')->upload();
-
-    expect($media->bucket)->toBe('my-bucket');
-});
-
-it('can chain multiple fluent methods', function () {
-    $service = $this->post->addMedia($this->file);
     $media = $service
+        ->disk('custom')
+        ->bucket('chain-bucket')
         ->label('test-label')
         ->index(42)
-        ->bucket('chain-bucket')
         ->upload();
 
+    expect($media->disk)->toBe('custom');
+    expect($media->bucket)->toBe('chain-bucket');
     expect($media->label)->toBe('test-label');
     expect($media->index)->toBe(42);
-    expect($media->bucket)->toBe('chain-bucket');
 });
 
 it('sync method delegates to upload', function () {

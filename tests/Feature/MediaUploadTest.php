@@ -49,32 +49,9 @@ it('can store multiple media', function () {
     }
 });
 
-it('returns null when uploading null files', function () {
-    $result = $this->post->addMedia(null)->upload();
-
-    expect($result)->toBeNull();
-});
-
-it('returns null when uploading empty array', function () {
-    $result = $this->post->addMedia([])->upload();
-
-    expect($result)->toBeNull();
-});
-
-it('can upload with custom label', function () {
-    $media = $this->post->addMedia($this->file)
-        ->label('profile-picture')
-        ->upload();
-
-    expect($media->label)->toBe('profile-picture');
-});
-
-it('can upload with custom index', function () {
-    $media = $this->post->addMedia($this->file)
-        ->index(5)
-        ->upload();
-
-    expect($media->index)->toBe(5);
+it('returns null when uploading null or empty files', function () {
+    expect($this->post->addMedia(null)->upload())->toBeNull();
+    expect($this->post->addMedia([])->upload())->toBeNull();
 });
 
 it('can upload with custom label and index', function () {
@@ -103,12 +80,7 @@ it('auto-increments index for multiple uploads', function () {
 
 it('can upload with collection parameter in upload method', function () {
     $this->post->registerCollections([
-        'avatars' => [
-            'disk' => 'public',
-            'bucket' => 'avatars',
-            'label' => 'avatars',
-            'single' => false,
-        ],
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
     ]);
 
     $media = $this->post->addMedia($this->file)->upload('avatars');
@@ -138,8 +110,7 @@ it('stores correct file metadata for images', function () {
     expect($media->mimetype)->toBe('image/jpeg');
     expect($media->filesize)->toBeGreaterThan(0);
     expect($media->filename)->toBe('test.jpg');
-    expect($media->metadata)->toBeArray();
-    expect($media->metadata)->toHaveKeys(['width', 'height']);
+    expect($media->metadata)->toBeArray()->toHaveKeys(['width', 'height']);
 });
 
 it('stores correct file metadata for non-image files', function () {
@@ -151,35 +122,20 @@ it('stores correct file metadata for non-image files', function () {
     expect($media->filename)->toBe('document.pdf');
 });
 
-it('defaults to approved true on upload', function () {
+it('respects default_approved config', function () {
     $media = $this->post->addMedia($this->file)->upload();
-
     expect($media->approved)->toBeTrue();
-});
 
-it('respects default_approved config set to false', function () {
     config(['media.default_approved' => false]);
-
-    $media = $this->post->addMedia($this->file)->upload();
-
-    expect($media->approved)->toBeFalse();
+    $media2 = $this->post->addMedia(UploadedFile::fake()->image('test2.jpg'))->upload();
+    expect($media2->approved)->toBeFalse();
 });
 
-it('uses default collection when none specified', function () {
+it('uses default collection, disk, and bucket when none specified', function () {
     $media = $this->post->addMedia($this->file)->upload();
 
     expect($media->collection)->toBe(config('media.default_collection'));
-});
-
-it('uses default disk when none specified', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-
     expect($media->disk)->toBe(config('media.disk'));
-});
-
-it('uses default bucket when none specified', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-
     expect($media->bucket)->toBe(config('media.bucket'));
 });
 
@@ -204,15 +160,10 @@ it('can sync media with null files and still delete old ones', function () {
 
 it('replaces old media in single collection on upload', function () {
     $this->post->registerCollections([
-        'avatar' => [
-            'disk' => 'public',
-            'bucket' => 'avatars',
-            'label' => 'avatar',
-            'single' => true,
-        ],
+        'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
     ]);
 
-    $first = $this->post->addMedia($this->file)->collection('avatar')->upload();
+    $this->post->addMedia($this->file)->collection('avatar')->upload();
     $second = $this->post->addMedia(UploadedFile::fake()->image('new.jpg'))->collection('avatar')->upload();
 
     expect($this->post->media()->where('collection', 'avatar')->count())->toBe(1);
@@ -221,12 +172,7 @@ it('replaces old media in single collection on upload', function () {
 
 it('assigns collection disk and bucket from registered collection', function () {
     $this->post->registerCollections([
-        'gallery' => [
-            'disk' => 'public',
-            'bucket' => 'gallery-files',
-            'label' => 'Gallery Item',
-            'single' => false,
-        ],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery-files', 'label' => 'Gallery Item', 'single' => false],
     ]);
 
     $media = $this->post->addMedia($this->file)->collection('gallery')->upload();

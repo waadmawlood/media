@@ -1,4 +1,4 @@
-![Logo](lm.jpg)
+Logo
 
 # Media Files Package
 
@@ -7,7 +7,7 @@ A Laravel package for managing media files across multiple storage drivers (loca
 ## Authors
 
 - [Waad Mawlood](https://www.github.com/waadmawlood)
-- waad_mawlood@outlook.com
+- [waad_mawlood@outlook.com](mailto:waad_mawlood@outlook.com)
 
 ## Requirements
 
@@ -22,21 +22,20 @@ A Laravel package for managing media files across multiple storage drivers (loca
 composer require waad/media
 ```
 
-2. Publish the configuration and migration files:
+1. Publish the configuration and migration files:
 
 ```bash
 php artisan vendor:publish --provider="Waad\Media\MediaServiceProvider"
 ```
 
-3. Edit the config file at `config/media.php`
-
-4. Run the migrations:
+1. Edit the config file at `config/media.php`
+2. Run the migrations:
 
 ```bash
 php artisan migrate
 ```
 
-5. (Optional) Create storage symbolic links:
+1. (Optional) Create storage symbolic links:
 
 ```bash
 php artisan media:link
@@ -288,28 +287,32 @@ return [
 
 ## Media Model Attributes
 
-| Attribute | Type | Description |
-|---|---|---|
-| `basename` | string | Hashed file name on disk |
-| `filename` | string | Original uploaded file name |
-| `path` | string | Full path in storage |
-| `index` | int | Order index (default 1) |
-| `label` | string | Custom label |
-| `collection` | string | Collection name |
-| `disk` | string | Storage disk (hidden) |
-| `bucket` | string | Storage bucket/folder (hidden) |
-| `mimetype` | string | File MIME type |
-| `filesize` | int | File size in bytes |
-| `approved` | bool | Approval status |
-| `metadata` | json | Additional metadata (e.g. image dimensions) |
-| `full_url` | string | Appended: public URL to the file |
+
+| Attribute    | Type   | Description                                 |
+| ------------ | ------ | ------------------------------------------- |
+| `basename`   | string | Hashed file name on disk                    |
+| `filename`   | string | Original uploaded file name                 |
+| `path`       | string | Full path in storage                        |
+| `index`      | int    | Order index (default 1)                     |
+| `label`      | string | Custom label                                |
+| `collection` | string | Collection name                             |
+| `disk`       | string | Storage disk (hidden)                       |
+| `bucket`     | string | Storage bucket/folder (hidden)              |
+| `mimetype`   | string | File MIME type                              |
+| `filesize`   | int    | File size in bytes                          |
+| `approved`   | bool   | Approval status                             |
+| `metadata`   | json   | Additional metadata (e.g. image dimensions) |
+| `full_url`   | string | Appended: public URL to the file            |
+
 
 ## Artisan Commands
 
-| Command | Description |
-|---|---|
-| `php artisan media:link` | Create symbolic links from disk roots to public paths based on the `shortcut` config. Use `--force` to recreate existing links. |
-| `php artisan media:prune` | Permanently delete soft-deleted media records (and their files) older than `prune_media_after_day`. |
+
+| Command                   | Description                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `php artisan media:link`  | Create symbolic links from disk roots to public paths based on the `shortcut` config. Use `--force` to recreate existing links. |
+| `php artisan media:prune` | Permanently delete soft-deleted media records (and their files) older than `prune_media_after_day`.                             |
+
 
 ## Features
 
@@ -329,7 +332,7 @@ return [
 
 ```bash
 composer install
-vendor/bin/pest
+composer test
 ```
 
 ## License

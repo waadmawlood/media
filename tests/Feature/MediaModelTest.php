@@ -17,60 +17,32 @@ afterEach(function () {
     }
 });
 
-it('uses table name from config', function () {
-    $media = new Media;
+it('uses table name from config and allows override', function () {
+    expect((new Media)->getTable())->toBe(config('media.table_name'));
 
-    expect($media->getTable())->toBe(config('media.table_name'));
-});
-
-it('uses custom table name when overridden in subclass', function () {
-    $media = new class extends Media
+    $custom = new class extends Media
     {
         protected $table = 'custom_media';
     };
 
-    expect($media->getTable())->toBe('custom_media');
+    expect($custom->getTable())->toBe('custom_media');
 });
 
-it('can approve media', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-    $media->disApprove();
-
-    expect($media->approved)->toBeFalse();
-
-    $media->approve();
-    expect($media->approved)->toBeTrue();
-});
-
-it('can disapprove media', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-
-    $media->disApprove();
-
-    expect($media->approved)->toBeFalse();
-});
-
-it('approve returns the media instance', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-
-    $result = $media->approve();
-
-    expect($result)->toBeInstanceOf(Media::class);
-    expect($result->id)->toBe($media->id);
-});
-
-it('disapprove returns the media instance', function () {
+it('can approve and disapprove media', function () {
     $media = $this->post->addMedia($this->file)->upload();
 
     $result = $media->disApprove();
+    expect($result)->toBeInstanceOf(Media::class)->id->toBe($media->id);
+    expect($media->approved)->toBeFalse();
 
-    expect($result)->toBeInstanceOf(Media::class);
-    expect($result->id)->toBe($media->id);
+    $result = $media->approve();
+    expect($result)->toBeInstanceOf(Media::class)->id->toBe($media->id);
+    expect($media->approved)->toBeTrue();
 });
 
 it('can scope to approved media only', function () {
-    $media1 = $this->post->addMedia($this->file)->upload();
-    $media2 = $this->post->addMedia(UploadedFile::fake()->image('test2.jpg'))->upload();
+    $this->post->addMedia($this->file)->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('test2.jpg'))->upload();
     $media3 = $this->post->addMedia(UploadedFile::fake()->image('test3.jpg'))->upload();
     $media3->disApprove();
 
@@ -86,16 +58,11 @@ it('can get mediable relationship', function () {
 
 it('has full_url attribute', function () {
     $media = $this->post->addMedia($this->file)->upload();
+    expect($media->full_url)->not->toBeNull()->toBeString();
 
-    expect($media->full_url)->not->toBeNull();
-    expect($media->full_url)->toBeString();
-});
-
-it('returns null for full_url when path is empty', function () {
-    $media = new Media;
-    $media->path = null;
-
-    expect($media->full_url)->toBeNull();
+    $emptyMedia = new Media;
+    $emptyMedia->path = null;
+    expect($emptyMedia->full_url)->toBeNull();
 });
 
 it('returns null for full_url when disabled in config', function () {
@@ -111,11 +78,8 @@ it('can format dates according to config', function () {
     $media = $this->post->addMedia($this->file)->upload();
     $dateFormat = config('media.format_date');
 
-    $formattedCreatedAt = $media->created_at->format($dateFormat);
-    expect($formattedCreatedAt)->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
-
-    $formattedUpdatedAt = $media->updated_at->format($dateFormat);
-    expect($formattedUpdatedAt)->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
+    expect($media->created_at->format($dateFormat))->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
+    expect($media->updated_at->format($dateFormat))->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
 });
 
 it('uses default date serialization when format_date is null', function () {
@@ -123,48 +87,28 @@ it('uses default date serialization when format_date is null', function () {
 
     $media = $this->post->addMedia($this->file)->upload();
 
-    $serialized = $media->serializeDate($media->created_at);
-    expect($serialized)->toBeString();
+    expect($media->serializeDate($media->created_at))->toBeString();
 });
 
-it('has correct fillable attributes', function () {
+it('has correct fillable attributes and casts', function () {
     $media = new Media;
-    $fillable = $media->getFillable();
 
-    expect($fillable)->toContain('basename');
-    expect($fillable)->toContain('filename');
-    expect($fillable)->toContain('path');
-    expect($fillable)->toContain('index');
-    expect($fillable)->toContain('label');
-    expect($fillable)->toContain('collection');
-    expect($fillable)->toContain('disk');
-    expect($fillable)->toContain('bucket');
-    expect($fillable)->toContain('mimetype');
-    expect($fillable)->toContain('filesize');
-    expect($fillable)->toContain('approved');
-    expect($fillable)->toContain('metadata');
-});
+    expect($media->getFillable())->toContain(
+        'basename', 'filename', 'path', 'index', 'label',
+        'collection', 'disk', 'bucket', 'mimetype', 'filesize',
+        'approved', 'metadata'
+    );
 
-it('has correct casts', function () {
-    $media = new Media;
     $casts = $media->getCasts();
-
     expect($casts['approved'])->toBe('boolean');
     expect($casts['metadata'])->toBe('json');
 });
 
-it('hides disk and bucket in serialization', function () {
+it('hides disk and bucket but appends full_url in serialization', function () {
     $media = $this->post->addMedia($this->file)->upload();
     $array = $media->toArray();
 
-    expect($array)->not->toHaveKey('disk');
-    expect($array)->not->toHaveKey('bucket');
-});
-
-it('appends full_url in serialization', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-    $array = $media->toArray();
-
+    expect($array)->not->toHaveKey('disk')->not->toHaveKey('bucket');
     expect($array)->toHaveKey('full_url');
 });
 
