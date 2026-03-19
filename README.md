@@ -229,9 +229,6 @@ return [
     // Database table name
     'table_name' => 'media',
 
-    // Enable UUID primary keys instead of auto-incrementing integers
-    'uuid' => false,
-
     // Default storage settings
     'disk' => env('MEDIA_DISK', 'public'),
     'bucket' => env('MEDIA_BUCKET', 'upload'),
@@ -295,7 +292,6 @@ return [
 - Collection management with per-collection disk/bucket configuration
 - Soft deletes with `withTrashed` support
 - File approval system
-- UUID primary key support
 - Automatic image metadata extraction (width, height)
 - File utilities (exists, size, metadata, delete, temporary URL)
 - Automatic file cleanup via `media:prune`
