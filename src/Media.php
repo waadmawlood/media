@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Waad\Media\Helpers\FileSystem;
 
 class Media extends Model
 {
@@ -83,7 +84,9 @@ class Media extends Model
             $collection = $this->mediable?->registerCollections()[$this->collection] ?? [];
             $ttl = $collection['s3']['ttl_temporary_url'] ?? config('media.s3.default_ttl_temporary_url', 5);
 
-            return Storage::disk($disk)->temporaryUrl($this->path, now()->addMinutes($ttl));
+            return FileSystem::isDiskS3($disk) ?
+                Storage::disk($disk)->temporaryUrl($this->path, now()->addMinutes($ttl)) :
+                Storage::disk($disk)->url($this->path);
         } catch (\Exception $e) {
             return null;
         }

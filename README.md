@@ -132,6 +132,12 @@ $allMedia = $post->getMedia();
 // Get media from a specific collection
 $avatars = $post->getCollection('avatars');
 
+// Get collection urls
+$urls = $post->getCollectionUrls('avatars');
+$urls = $post->getCollectionGroupUrls(); // get urls for multiple collections
+$urls = $post->getCollectionGroupUrls(only: ['avatar', 'gallery']); // get urls for multiple collections
+$urls = $post->getCollectionGroupUrls(except: ['avatar', 'gallery']); // get urls for multiple collections
+
 // Get all collections by group
 $collections = $post->getCollectionGroups();
 $collections = $post->getCollectionGroups(only: ['avatar', 'gallery']); // only return the collections in the array

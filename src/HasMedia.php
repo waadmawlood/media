@@ -232,6 +232,45 @@ trait HasMedia
     }
 
     /**
+     * Get the media collection as a single media.
+     */
+    public function getCollectionUrls(?string $name = null): Collection|string|null
+    {
+        $name = $name ?? config('media.default_collection');
+        $isSingle = $this->registerCollections()[$name]['single'] ?? false;
+
+        $collection = $this->getCollection($name);
+
+        if (blank($collection)) {
+            return $isSingle ? null : collect();
+        }
+
+        if ($isSingle) {
+            return $collection->temporary_url;
+        }
+
+        return $collection->map(function (Media $media) {
+            return $media->temporary_url;
+        });
+    }
+
+    public function getCollectionGroupUrls(array $only = [], array $except = []): Collection
+    {
+        $collections = $this->registerCollections();
+        $result = collect();
+
+        foreach ($collections as $name => $options) {
+            if ($this->shouldSkipCollection($name, $only, $except)) {
+                continue;
+            }
+
+            $result->push($this->getCollectionUrls($name));
+        }
+
+        return $result->flatten();
+    }
+
+    /**
      * Get the media relationship.
      */
     public function media(): MorphMany
