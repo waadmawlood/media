@@ -30,7 +30,6 @@ class Media extends Model
 
     protected $appends = [
         'full_url',
-        'temporary_url',
     ];
 
     protected $casts = [
@@ -49,32 +48,12 @@ class Media extends Model
     }
 
     /**
-     * Get the public full URL for accessing the media file.
-     * Uses Storage::url() for non-local disks (S3, etc.)
-     * and shortcut-based URL construction for local disks.
+     * Get a temporary URL for accessing the media file.
+     * Works with any disk that supports temporary URLs (S3, etc.).
      */
     public function getFullUrlAttribute(): ?string
     {
         if (! config('media.enable_full_url', true) || ! $this->path) {
-            return null;
-        }
-
-        $disk = $this->disk ?? config('media.disk');
-
-        try {
-            return $this->basename ? Storage::disk($disk)->url($this->path) : null;
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Get a temporary URL for accessing the media file.
-     * Works with any disk that supports temporary URLs (S3, etc.).
-     */
-    public function getTemporaryUrlAttribute(): ?string
-    {
-        if (! config('media.enable_temporary_url', true)) {
             return null;
         }
 

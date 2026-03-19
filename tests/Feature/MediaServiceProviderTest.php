@@ -37,7 +37,6 @@ it('has default_approved configuration', function () {
 
 it('has url toggle configurations', function () {
     expect(config('media.enable_full_url'))->toBeBool();
-    expect(config('media.enable_temporary_url'))->toBeBool();
 });
 
 it('registers media:prune command', function () {

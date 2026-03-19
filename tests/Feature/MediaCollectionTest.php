@@ -137,8 +137,8 @@ it('can get collection urls for multiple collection', function () {
     $urls = $this->post->getCollectionUrls('gallery');
 
     expect($urls)->toHaveCount(2);
-    expect($urls->first())->toBe($media1->temporary_url);
-    expect($urls->last())->toBe($media2->temporary_url);
+    expect($urls->first())->toBe($media1->full_url);
+    expect($urls->last())->toBe($media2->full_url);
 });
 
 it('can get collection urls for single collection', function () {
@@ -154,7 +154,7 @@ it('can get collection urls for single collection', function () {
     $media = $this->post->addMedia($this->file)->collection('avatar')->upload();
     $url = $this->post->getCollectionUrls('avatar');
 
-    expect($url)->toBe($media->temporary_url);
+    expect($url)->toBe($media->full_url);
 });
 
 it('returns empty collection for empty multiple collection urls', function () {
@@ -354,8 +354,8 @@ it('can get collection group urls across multiple collections', function () {
     $urls = $this->post->getCollectionGroupUrls();
 
     expect($urls)->toHaveCount(2);
-    expect($urls)->toContain($avatar->temporary_url);
-    expect($urls)->toContain($galleryItem->temporary_url);
+    expect($urls)->toContain($avatar->full_url);
+    expect($urls)->toContain($galleryItem->full_url);
 });
 
 it('can get collection group urls with only filter', function () {
@@ -382,7 +382,7 @@ it('can get collection group urls with only filter', function () {
     $urls = $this->post->getCollectionGroupUrls(only: ['avatars']);
 
     expect($urls)->toHaveCount(1);
-    expect($urls)->toContain($avatar->temporary_url);
+    expect($urls)->toContain($avatar->full_url);
 });
 
 it('can get collection group urls with except filter', function () {
@@ -409,7 +409,7 @@ it('can get collection group urls with except filter', function () {
     $urls = $this->post->getCollectionGroupUrls(except: ['avatars']);
 
     expect($urls)->toHaveCount(1);
-    expect($urls)->toContain($galleryItem->temporary_url);
+    expect($urls)->toContain($galleryItem->full_url);
 });
 
 it('returns empty collection for collection group urls with no media', function () {
@@ -451,8 +451,8 @@ it('can get collection group urls with single collection', function () {
     $urls = $this->post->getCollectionGroupUrls();
 
     expect($urls)->toHaveCount(2);
-    expect($urls)->toContain($avatar->temporary_url);
-    expect($urls)->toContain($galleryItem->temporary_url);
+    expect($urls)->toContain($avatar->full_url);
+    expect($urls)->toContain($galleryItem->full_url);
 });
 
 it('returns default collection from registerCollections when none set', function () {

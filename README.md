@@ -258,9 +258,8 @@ return [
         // 'public' => 'storage',
     ],
 
-    // Append full_url and temporary_url attributes to the Media model
+    // Append full_url attribute to the Media model
     'enable_full_url' => env('MEDIA_ENABLE_FULL_URL', true),
-    'enable_temporary_url' => env('MEDIA_ENABLE_TEMPORARY_URL', true),
 
     // Auto-prune soft-deleted media after N days (via media:prune)
     'prune_media_after_day' => env('MEDIA_PRUNE_MEDIA_AFTER_DAY', 30),
@@ -290,7 +289,6 @@ return [
 | `approved` | bool | Approval status |
 | `metadata` | json | Additional metadata (e.g. image dimensions) |
 | `full_url` | string | Appended: public URL to the file |
-| `temporary_url` | string | Appended: S3 presigned temporary URL |
 
 ## Artisan Commands
 

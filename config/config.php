@@ -66,7 +66,6 @@ return [
     |--------------------------------------------------------------------------
     */
     'enable_full_url' => env('MEDIA_ENABLE_FULL_URL', true),
-    'enable_temporary_url' => env('MEDIA_ENABLE_TEMPORARY_URL', true),
 
     /*
     |--------------------------------------------------------------------------

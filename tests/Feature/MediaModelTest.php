@@ -91,14 +91,6 @@ it('has full_url attribute', function () {
     expect($media->full_url)->toBeString();
 });
 
-it('returns null for full_url when disabled in config', function () {
-    config(['media.enable_full_url' => false]);
-
-    $media = $this->post->addMedia($this->file)->upload();
-
-    expect($media->full_url)->toBeNull();
-});
-
 it('returns null for full_url when path is empty', function () {
     $media = new Media;
     $media->path = null;
@@ -106,19 +98,10 @@ it('returns null for full_url when path is empty', function () {
     expect($media->full_url)->toBeNull();
 });
 
-it('has temporary_url attribute', function () {
+it('returns null for full_url when disabled in config', function () {
+    config(['media.enable_full_url' => false]);
     $media = $this->post->addMedia($this->file)->upload();
-
-    expect($media->temporary_url)->not->toBeNull();
-});
-
-it('returns null for temporary_url when disabled in config', function () {
-    config(['media.enable_temporary_url' => false]);
-
-    $media = $this->post->addMedia($this->file)->upload();
-
-    expect($media->full_url)->not->toBeNull();
-    expect($media->temporary_url)->toBeNull();
+    expect($media->full_url)->toBeNull();
 });
 
 it('can format dates according to config', function () {
@@ -178,12 +161,11 @@ it('hides disk and bucket in serialization', function () {
     expect($array)->not->toHaveKey('bucket');
 });
 
-it('appends full_url and temporary_url in serialization', function () {
+it('appends full_url in serialization', function () {
     $media = $this->post->addMedia($this->file)->upload();
     $array = $media->toArray();
 
     expect($array)->toHaveKey('full_url');
-    expect($array)->toHaveKey('temporary_url');
 });
 
 it('uses soft deletes', function () {

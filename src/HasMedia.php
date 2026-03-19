@@ -246,11 +246,11 @@ trait HasMedia
         }
 
         if ($isSingle) {
-            return $collection->temporary_url;
+            return $collection->full_url;
         }
 
         return $collection->map(function (Media $media) {
-            return $media->temporary_url;
+            return $media->full_url;
         });
     }
 
