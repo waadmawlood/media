@@ -150,6 +150,10 @@ $array = $post->getCollectionArray('avatars');
 $first = $post->getFirstMedia();
 $last  = $post->getLastMedia();
 
+// Get first or last media by collection
+$first = $post->getFirstMediaByCollection('gallery');
+$last  = $post->getLastMediaByCollection('gallery');
+
 // Check if model has media in a collection
 $post->hasMedia('avatars'); // true / false
 
@@ -160,6 +164,10 @@ $media = $post->mediaById($id, withTrashed: true);
 // Filter by MIME type
 $images = $post->mediaByMimeType('image/jpeg');
 
+// Filter by MIME type and collection
+$images = $post->mediaByMimeTypeByCollection('image/jpeg', 'gallery');
+$images = $post->mediaByMimeTypeByCollection('image/jpeg', 'gallery', withTrashed: true);
+
 // Filter by approval status
 $approved    = $post->mediaApproved();
 $disapproved = $post->mediaApproved(false);
@@ -168,6 +176,12 @@ $disapproved = $post->mediaApproved(false);
 $totalSize  = $post->mediaTotalSize();
 $totalCount = $post->mediaTotalCount();
 $totalCount = $post->mediaTotalCount(withTrashed: true);
+
+// Statistics by collection
+$size  = $post->mediaTotalSizeByCollection('gallery');
+$size  = $post->mediaTotalSizeByCollection('gallery', withTrashed: true);
+$count = $post->mediaTotalCountByCollection('gallery');
+$count = $post->mediaTotalCountByCollection('gallery', withTrashed: true);
 ```
 
 ### Syncing Media
@@ -308,7 +322,7 @@ return [
 - File utilities (exists, size, metadata, delete, temporary URL)
 - Automatic file cleanup via `media:prune`
 - Polymorphic media relationships
-- File statistics (total size, total count)
+- File statistics (total size, total count) — global and per-collection
 - Customizable date serialization format
 
 ## Testing

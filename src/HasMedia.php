@@ -2,7 +2,6 @@
 
 namespace Waad\Media;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -57,6 +56,22 @@ trait HasMedia
     }
 
     /**
+     * Get total files size by collection.
+     */
+    public function mediaTotalSizeByCollection(?string $collection = null, bool $withTrashed = false): int
+    {
+        $collection = $collection ?? config('media.default_collection');
+        if (blank($collection)) {
+            return 0;
+        }
+
+        return $this->media()
+            ->where('collection', $collection)
+            ->when($withTrashed, fn ($q) => $q->withTrashed())
+            ->sum('filesize') ?? 0;
+    }
+
+    /**
      * Get total media count.
      *
      * @param  bool  $withTrashed  Include soft deleted media
@@ -64,6 +79,24 @@ trait HasMedia
     public function mediaTotalCount(bool $withTrashed = false): int
     {
         return $this->media()
+            ->when($withTrashed, fn ($q) => $q->withTrashed())
+            ->count();
+    }
+
+    /**
+     * Get total media count by collection.
+     *
+     * @param  bool  $withTrashed  Include soft deleted media
+     */
+    public function mediaTotalCountByCollection(?string $collection = null, bool $withTrashed = false): int
+    {
+        $collection = $collection ?? config('media.default_collection');
+        if (blank($collection)) {
+            return 0;
+        }
+
+        return $this->media()
+            ->where('collection', $collection)
             ->when($withTrashed, fn ($q) => $q->withTrashed())
             ->count();
     }
@@ -94,6 +127,20 @@ trait HasMedia
     }
 
     /**
+     * Get media by mime type by collection.
+     */
+    public function mediaByMimeTypeByCollection(string $mimeType, ?string $collection = null, bool $withTrashed = false): Collection
+    {
+        $collection = $collection ?? config('media.default_collection');
+
+        return $this->media()
+            ->where('mimetype', $mimeType)
+            ->where('collection', $collection)
+            ->when($withTrashed, fn ($q) => $q->withTrashed())
+            ->get();
+    }
+
+    /**
      * Get media by approval status.
      *
      * @param  bool  $withTrashed  Include soft deleted media
@@ -104,14 +151,6 @@ trait HasMedia
             ->where('approved', $approved)
             ->when($withTrashed, fn ($q) => $q->withTrashed())
             ->get();
-    }
-
-    /**
-     * Get the media query.
-     */
-    public function getMediaQuery(): Builder
-    {
-        return $this->media()->getQuery();
     }
 
     /**
@@ -144,11 +183,31 @@ trait HasMedia
     }
 
     /**
+     * Get the first media by collection.
+     */
+    public function getFirstMediaByCollection(?string $collection = null): ?Media
+    {
+        $collection = $collection ?? config('media.default_collection');
+
+        return $this->media()->where('collection', $collection)->oldest()->first();
+    }
+
+    /**
      * Get the last media.
      */
     public function getLastMedia(): ?Media
     {
         return $this->media()->latest()->first();
+    }
+
+    /**
+     * Get the last media by collection.
+     */
+    public function getLastMediaByCollection(?string $collection = null): ?Media
+    {
+        $collection = $collection ?? config('media.default_collection');
+
+        return $this->media()->where('collection', $collection)->latest()->first();
     }
 
     /**
