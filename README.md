@@ -11,7 +11,7 @@ A Laravel package for managing media files across multiple storage drivers (loca
 
 ## Requirements
 
-- PHP >= 8.0
+- PHP >= 8.1
 - Laravel 9, 10, 11, 12, or 13
 
 ## Installation
