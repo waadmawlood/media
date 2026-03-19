@@ -2,13 +2,13 @@
 
 namespace Waad\Media\Services;
 
-use Waad\Media\Media;
 use Illuminate\Support\Collection;
+use Waad\Media\Media;
 
 class MediaDeletingService extends MediaService
 {
-
     private bool $isList;
+
     private array $medias;
 
     public function __construct($model, $files = null)
@@ -24,14 +24,14 @@ class MediaDeletingService extends MediaService
      */
     public function delete()
     {
-        if (blank($this->getFiles()))
+        if (blank($this->getFiles())) {
             return null;
+        }
 
         $this->isList = $this->isList();
 
         return $this->removeFiles();
     }
-
 
     /**
      * Remove Files
@@ -48,18 +48,19 @@ class MediaDeletingService extends MediaService
     /**
      * Upload One File
      *
-     * @param Media|int|null $file
      * @return bool|null
      */
-    private function removeOneFile(Media|int|null $file = null)
+    private function removeOneFile(Media|int|string|null $file = null)
     {
         $media = $file ?? $this->getFiles();
 
-        if (blank($media))
+        if (blank($media)) {
             return null;
+        }
 
-        if ($media instanceof Media)
+        if ($media instanceof Media) {
             $media = $media->id;
+        }
 
         return $this->removeMedia($media);
     }
@@ -74,8 +75,9 @@ class MediaDeletingService extends MediaService
         foreach ($this->getFiles() as $file) {
             $media = $this->removeOneFile($file);
 
-            if ($media)
+            if ($media) {
                 $this->setResult($media);
+            }
         }
 
         return $this->getResult();
@@ -88,8 +90,9 @@ class MediaDeletingService extends MediaService
      */
     private function removeMedia($id)
     {
-        if (!in_array($id, $this->medias))
+        if (! in_array($id, $this->medias)) {
             return null;
+        }
 
         return $this->getModel()->media()->where('id', $id)->delete();
     }

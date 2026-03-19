@@ -1,19 +1,32 @@
 <?php
 
-namespace Waad\Media\DTO;
+namespace Waad\Media\Dto;
 
-class FileDTO
+class MediaDto
 {
     public ?string $path;
+
     public ?string $basename;
+
     public ?string $filename;
+
     public int $index;
+
     public ?string $extension;
+
     public int $fileSize;
+
     public ?string $mimeType;
+
     public ?string $label;
+
+    public ?string $collection;
+
     public ?string $disk;
-    public ?string $directory;
+
+    public ?string $bucket;
+
+    public ?array $metadata;
 
     public function __construct($path)
     {

@@ -4,82 +4,85 @@ namespace Waad\Media;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Waad\Media\Helpers\FileSystem;
 
 class Media extends Model
 {
     use SoftDeletes;
 
-    /**
-     * fillable columns can insert and updated from user
-     * @var array
-     */
     protected $fillable = [
-        'base_name',
-        'file_name',
+        'basename',
+        'filename',
         'path',
         'index',
         'label',
+        'collection',
         'disk',
-        'directory',
-        'mime_type',
-        'file_size',
+        'bucket',
+        'mimetype',
+        'filesize',
         'approved',
-        'user_id',
-        'user_type',
+        'metadata',
     ];
 
-    /**
-     * @var array
-     */
-    protected $appends = ['url'];
+    protected $appends = [
+        'full_url',
+    ];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'approved' => 'boolean',
+        'metadata' => 'json',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'disk',
-        'directory',
+        'bucket',
     ];
 
-    /**
-     * Accessor to append path file from shortcut.
-     *
-     * @return string
-     */
-    public function getUrlAttribute()
+    public function getTable()
     {
-        $disk = $this->attributes['disk'] ?? $this->getFromConfig('media.disk');
-        $directory = $this->attributes['directory'] ?? $this->getFromConfig('media.directory');
-        $shortcut = $this->getFromConfig("media.shortcut.{$disk}");
-        $basename = $this->attributes['base_name'] ?? null;
-
-        return $basename ? sprintf('%s/%s', url("{$shortcut}/{$directory}/"), $basename) : null;
+        return $this->table ?? config('media.table_name');
     }
 
     /**
-     * Format data time of columns that it's type is timestamp
-     * There is in config/media.php => format_date.
+     * Get a temporary URL for accessing the media file.
+     * Works with any disk that supports temporary URLs (S3, etc.).
      */
-    public function serializeDate(DateTimeInterface $date)
+    public function getFullUrlAttribute(): ?string
     {
-        $format = $this->getFromConfig('media.format_date');
+        if (! config('media.enable_full_url', true) || ! $this->path) {
+            return null;
+        }
 
-        return $format ? $date->format($this->getFromConfig('media.format_date')) : $date;
+        $disk = $this->disk ?? config('media.disk');
+
+        try {
+            $collection = $this->mediable?->registerCollections()[$this->collection] ?? [];
+            $ttl = $collection['s3']['ttl_temporary_url'] ?? config('media.s3.default_ttl_temporary_url', 5);
+
+            return FileSystem::isDiskS3($disk) ?
+                Storage::disk($disk)->temporaryUrl($this->path, now()->addMinutes($ttl)) :
+                Storage::disk($disk)->url($this->path);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
-     * scope to return only records that it's approved => true
-     * use it e.g. $post->media->approved();.
+     * Format datetime for serialization
+     */
+    public function serializeDate(DateTimeInterface $date): string
+    {
+        $format = config('media.format_date');
+
+        return $format ? $date->format($format) : parent::serializeDate($date);
+    }
+
+    /**
+     * Scope query to approved media only
      */
     public function scopeApproved($query)
     {
@@ -87,59 +90,38 @@ class Media extends Model
     }
 
     /**
-     * morph relationship with any table can use media with it
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * Get the parent model that owns the media
      */
-    public function model()
+    public function mediable(): MorphTo
     {
-        return $this->morphTo('model');
+        return $this->morphTo('mediable');
     }
 
     /**
-     * morph User OR Any Model Guard Authorization
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * Get the user that owns the media
      */
-    public function user()
+    public function user(): MorphTo
     {
         return $this->morphTo();
     }
 
     /**
-     * Update all media of object approved = true
-     * use it e.g. $post->media->approve();.
+     * Mark media as approved
      */
-    public function approve()
+    public function approve(): self
     {
-        $this->update([
-            'approved' => true,
-        ]);
+        $this->update(['approved' => true]);
 
         return $this;
     }
 
     /**
-     * Update all media of object approved = false
-     * use it e.g. $post->media->disApprove();.
+     * Mark media as not approved
      */
-    public function disApprove()
+    public function disApprove(): self
     {
-        $this->update([
-            'approved' => false,
-        ]);
+        $this->update(['approved' => false]);
 
         return $this;
-    }
-
-    /**
-     * return from config
-     *
-     * @param string $value
-     * @return mixed
-     */
-    private function getFromConfig(string $value)
-    {
-        return config($value);
     }
 }

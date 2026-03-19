@@ -1,0 +1,272 @@
+<?php
+
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Waad\Media\Media;
+
+beforeEach(function () {
+    Storage::fake('public');
+    $this->post = createPost();
+    $this->file = UploadedFile::fake()->image('test.jpg', 50, 50);
+});
+
+afterEach(function () {
+    if (isset($this->post)) {
+        $this->post->media()->forceDelete();
+    }
+});
+
+// --- getCollection ---
+
+it('can register and use media collections', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $this->post->addMedia($this->file)->collection('avatars')->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('g.jpg'))->collection('gallery')->upload();
+
+    expect($this->post->hasMedia('avatars'))->toBeTrue();
+    expect($this->post->hasMedia('gallery'))->toBeTrue();
+    expect($this->post->getCollection('avatars'))->toHaveCount(1);
+    expect($this->post->getCollection('gallery'))->toHaveCount(1);
+});
+
+it('returns empty collection for unregistered collection name', function () {
+    expect($this->post->getCollection('nonexistent'))->toBeEmpty();
+});
+
+it('returns default collection when no name provided', function () {
+    $this->post->addMedia($this->file)->upload();
+
+    expect($this->post->getCollection())->toHaveCount(1);
+});
+
+it('can get single collection (returns Media instance or null)', function () {
+    $this->post->registerCollections([
+        'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
+    ]);
+
+    expect($this->post->getCollection('avatar'))->toBeNull();
+
+    $media = $this->post->addMedia($this->file)->collection('avatar')->upload();
+
+    expect($this->post->getCollection('avatar'))
+        ->toBeInstanceOf(Media::class)
+        ->id->toBe($media->id);
+});
+
+// --- getCollectionArray ---
+
+it('can get media collection as array', function () {
+    $this->post->registerCollections([
+        'default' => ['disk' => 'public', 'bucket' => 'upload', 'label' => null, 'single' => false],
+    ]);
+
+    expect($this->post->getCollectionArray('default'))->toBeArray()->toBeEmpty();
+
+    $this->post->addMedia($this->file)->upload();
+
+    expect($this->post->getCollectionArray('default'))->toBeArray()->not->toBeEmpty();
+});
+
+// --- getCollectionUrls ---
+
+it('can get collection urls for multiple collection', function () {
+    $this->post->registerCollections([
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $media1 = $this->post->addMedia($this->file)->collection('gallery')->upload();
+    $media2 = $this->post->addMedia(UploadedFile::fake()->image('test2.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $urls = $this->post->getCollectionUrls('gallery');
+
+    expect($urls)->toHaveCount(2);
+    expect($urls->first())->toBe($media1->full_url);
+    expect($urls->last())->toBe($media2->full_url);
+});
+
+it('can get collection urls for single collection', function () {
+    $this->post->registerCollections([
+        'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
+    ]);
+
+    expect($this->post->getCollectionUrls('avatar'))->toBeNull();
+
+    $media = $this->post->addMedia($this->file)->collection('avatar')->upload();
+
+    expect($this->post->getCollectionUrls('avatar'))->toBe($media->full_url);
+});
+
+it('returns empty collection for empty multiple collection urls', function () {
+    $this->post->registerCollections([
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    expect($this->post->getCollectionUrls('gallery'))->toBeEmpty();
+});
+
+// --- getCollectionGroups ---
+
+it('can get collection groups with all collections', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $this->post->addMedia($this->file)->collection('avatars')->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $groups = $this->post->getCollectionGroups();
+    expect($groups)->toBeArray()->toHaveKeys(['avatars', 'gallery']);
+    expect($groups['avatars'])->toHaveCount(1);
+    expect($groups['gallery'])->toHaveCount(1);
+});
+
+it('can get collection groups with only and except filters', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $this->post->addMedia($this->file)->collection('avatars')->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $onlyGroups = $this->post->getCollectionGroups(only: ['avatars']);
+    expect($onlyGroups)->toBeArray()->toHaveKey('avatars')->not->toHaveKey('gallery');
+
+    $exceptGroups = $this->post->getCollectionGroups(except: ['gallery']);
+    expect($exceptGroups)->toBeArray()->toHaveKey('avatars')->not->toHaveKey('gallery');
+});
+
+it('can get collection groups with single collection', function () {
+    $this->post->registerCollections([
+        'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $media = $this->post->addMedia($this->file)->collection('avatar')->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('gallery2.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $groups = $this->post->getCollectionGroups();
+
+    expect($groups)->toBeArray()->toHaveKeys(['avatar', 'gallery']);
+    expect($groups['avatar'])->toBeInstanceOf(Media::class);
+    expect($groups['avatar']->id)->toBe($media->id);
+    expect($groups['gallery'])->toBeArray()->toHaveCount(2);
+});
+
+it('returns empty arrays for collection groups with no media', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $groups = $this->post->getCollectionGroups();
+
+    expect($groups)->toBeArray()->toHaveKeys(['avatars', 'gallery']);
+    expect($groups['avatars'])->toBeEmpty();
+    expect($groups['gallery'])->toBeEmpty();
+});
+
+// --- getCollectionGroupUrls ---
+
+it('can get collection group urls across multiple collections', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $avatar = $this->post->addMedia($this->file)->collection('avatars')->upload();
+    $galleryItem = $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $urls = $this->post->getCollectionGroupUrls();
+    expect($urls)->toHaveCount(2);
+    expect($urls)->toContain($avatar->full_url);
+    expect($urls)->toContain($galleryItem->full_url);
+});
+
+it('can get collection group urls with only and except filters', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $avatar = $this->post->addMedia($this->file)->collection('avatars')->upload();
+    $galleryItem = $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $onlyUrls = $this->post->getCollectionGroupUrls(only: ['avatars']);
+    expect($onlyUrls)->toHaveCount(1)->toContain($avatar->full_url);
+
+    $exceptUrls = $this->post->getCollectionGroupUrls(except: ['avatars']);
+    expect($exceptUrls)->toHaveCount(1)->toContain($galleryItem->full_url);
+});
+
+it('returns empty collection for collection group urls with no media', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+    ]);
+
+    expect($this->post->getCollectionGroupUrls())->toBeEmpty();
+});
+
+it('can get collection group urls with single collection', function () {
+    $this->post->registerCollections([
+        'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $avatar = $this->post->addMedia($this->file)->collection('avatar')->upload();
+    $galleryItem = $this->post->addMedia(UploadedFile::fake()->image('gallery1.jpg', 50, 50))
+        ->collection('gallery')
+        ->upload();
+
+    $urls = $this->post->getCollectionGroupUrls();
+
+    expect($urls)->toHaveCount(2);
+    expect($urls)->toContain($avatar->full_url);
+    expect($urls)->toContain($galleryItem->full_url);
+});
+
+// --- registerCollections ---
+
+it('returns default collection from registerCollections when none set', function () {
+    $collections = $this->post->registerCollections();
+
+    expect($collections)->toBeArray()->toHaveKey(config('media.default_collection'));
+
+    $defaultCollection = $collections[config('media.default_collection')];
+    expect($defaultCollection['disk'])->toBe(config('media.disk'));
+    expect($defaultCollection['bucket'])->toBe(config('media.bucket'));
+    expect($defaultCollection['single'])->toBeFalse();
+});
+
+it('can overwrite registered collections', function () {
+    $this->post->registerCollections([
+        'first' => ['disk' => 'public', 'bucket' => 'first', 'label' => null, 'single' => false],
+    ]);
+
+    $this->post->registerCollections([
+        'second' => ['disk' => 'public', 'bucket' => 'second', 'label' => null, 'single' => false],
+    ]);
+
+    $collections = $this->post->registerCollections();
+    expect($collections)->toHaveKey('second')->not->toHaveKey('first');
+});

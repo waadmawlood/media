@@ -20,15 +20,30 @@
         }
     ],
     "require": {
-        "php": "^8.0"
+        "php": "^8.1",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "laravel/framework": "^9.0|^10.0|^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0|^11.0",
+        "pestphp/pest-plugin-laravel": "^1.0|^2.0|^3.0|^4.0"
     },
     "autoload": {
         "psr-4": {
             "Waad\\Media\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
+    },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -38,5 +53,9 @@
                 "Waad\\Media\\MediaServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "format": "vendor/bin/pint"
     }
 }

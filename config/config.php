@@ -1,70 +1,96 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
-    | Media waad/media package of laravel Configuration
+    | Media Package Configuration
     |--------------------------------------------------------------------------
     |
-    | Media package save all your file in one place
-    | any model will be in ralated has many of media
-    |
-    | To learn more: https://github.com/waadmawlood/media
+    | This configuration file contains all the settings for the waad/media package.
+    | Customize these values according to your application's needs.
     |
     */
 
     /*
-    * The model you want to use as a Media model
+    |--------------------------------------------------------------------------
+    | Media Model Configuration
+    |--------------------------------------------------------------------------
     */
     'model' => Waad\Media\Media::class,
 
     /*
-    * Enable Uuid Type only migration related `Uuid`, `nullableUuidMorphs` and `uuidMorphs`
+    |--------------------------------------------------------------------------
+    | Database Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the table name used for storing media records.
     */
-    'uuid' => false,
+    'table_name' => 'media',
 
     /*
-     * Default disk configration of path in file system in config/filesystem.php
-     */
-    'disk' => 'public',
+    |--------------------------------------------------------------------------
+    | Storage Configuration
+    |--------------------------------------------------------------------------
+    */
+    'disk' => env('MEDIA_DISK', 'public'),
+    'bucket' => env('MEDIA_BUCKET', 'upload'),
+    'default_collection' => env('MEDIA_DEFAULT_COLLECTION', 'default'),
 
     /*
-     * Default path direction to save media
-     */
-    'directory' => 'upload',
+    |--------------------------------------------------------------------------
+    | S3 Configuration
+    |--------------------------------------------------------------------------
+    */
+    's3' => [
+        // Default TTL for temporary URLs in minutes
+        'default_ttl_temporary_url' => env('MEDIA_DEFAULT_S3_TTL_TEMPORARY_URL', 5),
+    ],
 
     /*
-     * Shortcut of disks to make direct shortcut to access disks must contain `root`
-     */
+    |--------------------------------------------------------------------------
+    | Storage Shortcut Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Map disk names to their public path shortcuts used for URL generation
+    | and symbolic link creation via `media:link` command.
+    | Example: 'public' => 'storage' maps the public disk to /storage/ URL prefix.
+    |
+    */
     'shortcut' => [
-        'public' => 'media',
+        // 'public' => 'storage',
     ],
 
     /*
-     * The delete file is flag to delete file from server when delete media from DB prune Model
-     */
-    'delete_file_after_day' => 30,
+    |--------------------------------------------------------------------------
+    | Enable appends full URL and temporary URL for media
+    |--------------------------------------------------------------------------
+    */
+    'enable_full_url' => env('MEDIA_ENABLE_FULL_URL', true),
 
     /*
-     * The default value of approved in table before migrate table media
-     */
-    'default_approved' => true,
+    |--------------------------------------------------------------------------
+    | File Management Configuration
+    |--------------------------------------------------------------------------
+    */
+    'prune_media_after_day' => env('MEDIA_PRUNE_MEDIA_AFTER_DAY', 30),
+    'default_approved' => env('MEDIA_DEFAULT_APPROVED', true),
 
     /*
-     * The order by of get media ASC or DESC
-     * type => DESC, desc, ASC, asc
-     * column => id, base_name, file_name, approved, mime_type, file_size, user_id, created_at, updated_at
-     */
-    'order' => [
-        'type' => 'desc',
-        'column' => 'created_at',
-    ],
-
-    /*
-     * format dateTime of created_at and updated_at
-     * e.g. `Y-m-d h:i:s a` => 2022-09-15 07:25:13 pm
-     * e.g. `null` => timestamp
-     */
-    'format_date' => null,
+    |--------------------------------------------------------------------------
+    | Date Format Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the date format for created_at and updated_at timestamps.
+    | Set to null to use raw timestamps.
+    | Default: null return example `2026-03-19T12:03:15.000000Z`
+    |
+    | Example: 'Y-m-d H:i:s'
+    | Supported formats:
+    | - Y-m-d H:i:s return example `2026-03-19 12:03:15`
+    | - Y-m-d return example `2026-03-19`
+    | - Y-m-d H:i return example `2026-03-19 12:03`
+    | - Y-m-d H:i:s.u return example `2026-03-19 12:03:15.000000`
+    | - Y-m-d H:i:s.u return example `2026-03-19 12:03:15.000000`
+    */
+    'format_date' => env('MEDIA_DATE_FORMAT', null),
 ];
