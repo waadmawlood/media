@@ -80,7 +80,8 @@ class Media extends Model
         $disk = $this->disk ?? config('media.disk');
 
         try {
-            $ttl = config('media.s3.default_ttl_temporary_url', 5);
+            $collection = $this->mediable?->registerCollections()[$this->collection] ?? [];
+            $ttl = $collection['s3']['ttl_temporary_url'] ?? config('media.s3.default_ttl_temporary_url', 5);
 
             return Storage::disk($disk)->temporaryUrl($this->path, now()->addMinutes($ttl));
         } catch (\Exception $e) {

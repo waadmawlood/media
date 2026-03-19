@@ -179,6 +179,59 @@ trait HasMedia
     }
 
     /**
+     * Get registered collection groups (grouped collections by their 'group' attribute).
+     */
+    public function getCollectionGroups(array $only = [], array $except = []): array
+    {
+        $collections = $this->registerCollections();
+        $result = [];
+
+        foreach ($collections as $name => $options) {
+            if ($this->shouldSkipCollection($name, $only, $except)) {
+                continue;
+            }
+
+            $result[$name] = $this->formatCollectionMedia($name, $options);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Determine if a collection should be skipped based on filters.
+     */
+    private function shouldSkipCollection(string $name, array $only, array $except): bool
+    {
+        if (filled($only) && ! in_array($name, $only)) {
+            return true;
+        }
+
+        if (filled($except) && in_array($name, $except)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Format collection media based on single/multiple configuration.
+     */
+    private function formatCollectionMedia(string $name, array $options): array|Media|null
+    {
+        $media = $this->getCollection($name);
+
+        if (($options['single'] ?? false) === true) {
+            return $media ?? [];
+        }
+
+        if ($media instanceof Collection) {
+            return $media->all();
+        }
+
+        return blank($media) ? [] : [$media];
+    }
+
+    /**
      * Get the media relationship.
      */
     public function media(): MorphMany

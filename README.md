@@ -97,11 +97,14 @@ class User extends Model
     public function registerCollections(array $attributes = []): array
     {
         return [
-            'avatars' => [
+            'avatar' => [
                 'disk' => 's3',
-                'bucket' => 'profile-pictures',
-                'label' => 'User Avatars',
+                'bucket' => 'avatars', // directory in the bucket if whant save direct on bucket set empty string ''
+                'label' => 'User Avatar',
                 'single' => true,   // Only keeps one file
+                's3' => [
+                    'ttl_temporary_url' => config('media.s3.default_ttl_temporary_url', 5),
+                ],
             ],
             'gallery' => [
                 'disk' => 'public',
@@ -128,6 +131,11 @@ $allMedia = $post->getMedia();
 
 // Get media from a specific collection
 $avatars = $post->getCollection('avatars');
+
+// Get all collections by group
+$collections = $post->getCollectionGroups();
+$collections = $post->getCollectionGroups(only: ['avatar', 'gallery']); // only return the collections in the array
+$collections = $post->getCollectionGroups(except: ['avatar', 'gallery']); // return all collections except the ones in the array
 
 // Get collection as array
 $array = $post->getCollectionArray('avatars');
