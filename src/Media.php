@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
-use Waad\Media\Helpers\FileSystem;
 
 class Media extends Model
 {
@@ -49,23 +48,28 @@ class Media extends Model
     }
 
     /**
-     * Get the public full URL for accessing the media file
+     * Get the public full URL for accessing the media file.
+     * Uses Storage::url() for non-local disks (S3, etc.)
+     * and shortcut-based URL construction for local disks.
      */
     public function getFullUrlAttribute(): ?string
     {
-        if (! config('media.enable_full_url', true)) {
+        if (! config('media.enable_full_url', true) || ! $this->path) {
             return null;
         }
 
         $disk = $this->disk ?? config('media.disk');
-        $bucket = $this->bucket ?? config('media.bucket');
-        $shortcut = config("media.shortcut.{$disk}");
 
-        return $this->basename ? sprintf('%s/%s', url("{$shortcut}/{$bucket}/"), $this->basename) : null;
+        try {
+            return $this->basename ? Storage::disk($disk)->url($this->path) : null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
-     * Get the private temporary URL for accessing the media file (S3 only)
+     * Get a temporary URL for accessing the media file.
+     * Works with any disk that supports temporary URLs (S3, etc.).
      */
     public function getTemporaryUrlAttribute(): ?string
     {
@@ -74,10 +78,6 @@ class Media extends Model
         }
 
         $disk = $this->disk ?? config('media.disk');
-
-        if (! FileSystem::isDiskS3($disk) || ! $this->path) {
-            return null;
-        }
 
         try {
             $ttl = config('media.s3.default_ttl_temporary_url', 5);

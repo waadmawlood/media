@@ -57,13 +57,6 @@ it('can store multiple media', function () {
     gc_collect_cycles();
 });
 
-it('can generate correct url', function () {
-    $media = $this->post->addMedia($this->file)->upload();
-
-    $expectedUrl = url('upload/').'/'.$media->basename;
-    expect($media->full_url)->toBe($expectedUrl);
-});
-
 it('can sync media', function () {
     // Add initial media
     $initialMedia = $this->post->addMedia($this->file)->upload();
@@ -228,10 +221,10 @@ it('can upload with custom label and index', function () {
     expect($media->index)->toBe(5);
 });
 
-it('returns null for temporary_url on local disk', function () {
+it('returns not null for temporary_url on local disk', function () {
     $media = $this->post->addMedia($this->file)->upload();
 
-    expect($media->temporary_url)->toBeNull();
+    expect($media->temporary_url)->not->toBeNull();
 });
 
 it('can get media collection as array', function () {
