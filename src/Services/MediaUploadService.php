@@ -183,11 +183,7 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
 
         $this->getModel()->media()
             ->where('collection', $collection)
-            ->get()
-            ->each(function (Media $media) {
-                Storage::disk($media->disk)->delete($media->path);
-                $media->delete();
-            });
+            ->delete();
     }
 
     private function uploadOneFile(?UploadedFile $file = null): ?Media

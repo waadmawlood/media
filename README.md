@@ -263,7 +263,7 @@ return [
     'enable_temporary_url' => env('MEDIA_ENABLE_TEMPORARY_URL', true),
 
     // Auto-prune soft-deleted media after N days (via media:prune)
-    'delete_file_after_day' => env('MEDIA_DELETE_FILE_AFTER_DAY', 30),
+    'prune_media_after_day' => env('MEDIA_PRUNE_MEDIA_AFTER_DAY', 30),
 
     // Default approval status for newly uploaded media
     'default_approved' => env('MEDIA_DEFAULT_APPROVED', true),
@@ -297,7 +297,7 @@ return [
 | Command | Description |
 |---|---|
 | `php artisan media:link` | Create symbolic links from disk roots to public paths based on the `shortcut` config. Use `--force` to recreate existing links. |
-| `php artisan media:prune` | Permanently delete soft-deleted media records (and their files) older than `delete_file_after_day`. |
+| `php artisan media:prune` | Permanently delete soft-deleted media records (and their files) older than `prune_media_after_day`. |
 
 ## Features
 

@@ -32,10 +32,10 @@ class MediaPrune extends Command
     public function handle()
     {
         try {
-            $days = config('media.delete_file_after_day');
+            $days = config('media.prune_media_after_day');
 
             if (! is_numeric($days)) {
-                throw new Exception('The media.delete_file_after_day config value must be a number');
+                throw new Exception('The media.prune_media_after_day config value must be a number');
             }
 
             $days = (int) $days;
@@ -45,7 +45,7 @@ class MediaPrune extends Command
             $media = new Media;
             $model = DB::table($media->getTable());
             $mediaPrune = new MediaPrunableService($model, $dateSubDays);
-            $mediaPrune->all()->paths()->delete();
+            $mediaPrune->prune();
 
             // Permanently delete old soft-deleted records
             $forceDeletedCount = $media->onlyTrashed()
@@ -54,11 +54,11 @@ class MediaPrune extends Command
 
             $this->info("Successfully pruned media files and permanently deleted {$forceDeletedCount} records.");
 
-            return 0;
+            return Command::SUCCESS;
         } catch (Exception $e) {
             $this->error("Failed to prune media: {$e->getMessage()}");
 
-            return 1;
+            return Command::FAILURE;
         }
     }
 }

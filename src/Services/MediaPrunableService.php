@@ -2,31 +2,33 @@
 
 namespace Waad\Media\Services;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+
 class MediaPrunableService
 {
-    private $model;
+    private $query;
 
     private $dateSubDays;
 
-    private $allFiles;
+    private ?Collection $deletedMedia = null;
 
-    private array $allPaths;
+    private array $pathsGroupedByDisk = [];
 
-    public function __construct($model, $dateSubDays)
+    public function __construct($query, $dateSubDays)
     {
-        $this->model = $model;
+        $this->query = $query;
         $this->dateSubDays = $dateSubDays;
-        $this->allPaths = [];
     }
 
     /**
-     * all
+     * Fetch all soft-deleted media files older than the specified date.
      *
-     * @return MediaPrunableService
+     * @return $this
      */
-    public function all()
+    public function all(): self
     {
-        $this->allFiles = $this->model
+        $this->deletedMedia = $this->query
             ->select('disk', 'path')
             ->where('deleted_at', '<', $this->dateSubDays)
             ->whereNotNull('deleted_at')
@@ -36,30 +38,34 @@ class MediaPrunableService
     }
 
     /**
-     * paths
+     * Group file paths by disk for batch deletion.
      *
-     * @return MediaPrunableService
+     * @return $this
      */
-    public function paths()
+    public function paths(): self
     {
-        foreach ($this->allFiles as $file) {
-            $path = $this->getRootDisk($file->disk).DIRECTORY_SEPARATOR.$file->path;
-            $this->allPaths[] = $path;
+        if ($this->deletedMedia === null) {
+            return $this;
         }
+
+        $this->pathsGroupedByDisk = $this->deletedMedia
+            ->groupBy('disk')
+            ->map(fn ($files) => $files->pluck('path')->all())
+            ->all();
 
         return $this;
     }
 
     /**
-     * delete
+     * Delete all grouped files from their respective disks.
      *
-     * @return MediaPrunableService
+     * @return $this
      */
-    public function delete()
+    public function delete(): self
     {
-        foreach ($this->allPaths as $path) {
-            if (file_exists($path)) {
-                unlink($path);
+        foreach ($this->pathsGroupedByDisk as $disk => $paths) {
+            if (filled($paths)) {
+                Storage::disk($disk)->delete($paths);
             }
         }
 
@@ -67,22 +73,12 @@ class MediaPrunableService
     }
 
     /**
-     * Get Root Disk
+     * Execute the full pruning process: fetch, group, and delete.
      *
-     * @return string
+     * @return $this
      */
-    private function getRootDisk(string $disk)
+    public function prune(): self
     {
-        $configDisk = config("filesystems.disks.{$disk}", null);
-
-        if (blank($configDisk) || ! is_array($configDisk)) {
-            return storage_path($disk);
-        }
-
-        if (! array_key_exists('root', $configDisk)) {
-            return storage_path($disk);
-        }
-
-        return $configDisk['root'];
+        return $this->all()->paths()->delete();
     }
 }

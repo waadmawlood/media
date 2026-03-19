@@ -75,7 +75,7 @@ return [
     | File Management Configuration
     |--------------------------------------------------------------------------
     */
-    'delete_file_after_day' => env('MEDIA_DELETE_FILE_AFTER_DAY', 30),
+    'prune_media_after_day' => env('MEDIA_PRUNE_MEDIA_AFTER_DAY', 30),
     'default_approved' => env('MEDIA_DEFAULT_APPROVED', true),
 
     /*
