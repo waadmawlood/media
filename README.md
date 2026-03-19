@@ -81,7 +81,7 @@ $media = $post->addMedia($request->file('image'))
     ->upload();
 ```
 
-The upload service works with **any** Laravel filesystem disk — local, S3, GCS, or any custom driver. Just set the `disk()` and it handles the rest.
+The upload service works with **any** Laravel filesystem disk — local, S3, or any custom driver. Just set the `disk()` and it handles the rest.
 
 ### Media Collections
 
@@ -288,7 +288,7 @@ return [
 ## Features
 
 - Multiple file upload support
-- Works with any Laravel filesystem disk (local, S3, GCS, etc.)
+- Works with any Laravel filesystem disk (local, S3, etc.)
 - Collection management with per-collection disk/bucket configuration
 - Soft deletes with `withTrashed` support
 - File approval system
