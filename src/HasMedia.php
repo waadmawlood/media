@@ -2,10 +2,12 @@
 
 namespace Waad\Media;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Waad\Media\Services\MediaDeletingService;
-use Waad\Media\Services\MediaLocalService;
+use Waad\Media\Services\MediaUploadService;
 
 trait HasMedia
 {
@@ -16,9 +18,9 @@ trait HasMedia
      *
      * @param  UploadedFile|array<UploadedFile>|null  $files
      */
-    public function addMedia(UploadedFile|array|null $files): MediaLocalService
+    public function addMedia(UploadedFile|array|null $files): MediaUploadService
     {
-        return new MediaLocalService($this, $files);
+        return new MediaUploadService($this, $files);
     }
 
     /**
@@ -27,7 +29,7 @@ trait HasMedia
      * @param  UploadedFile|array<UploadedFile>|null  $files
      * @param  array<int>  $ids
      */
-    public function syncMedia(UploadedFile|array|null $files = null, array $ids = []): MediaLocalService
+    public function syncMedia(UploadedFile|array|null $files = null, array $ids = []): MediaUploadService
     {
         $this->deleteMedia($ids)->delete();
 
@@ -107,9 +109,9 @@ trait HasMedia
     /**
      * Get the media query.
      */
-    public function getMediaQuery(): \Illuminate\Database\Query\Builder
+    public function getMediaQuery(): Builder
     {
-        return $this->media()->newQuery();
+        return $this->media()->getQuery();
     }
 
     /**
@@ -173,13 +175,13 @@ trait HasMedia
     {
         $name = $name ?? config('media.default_collection');
 
-        return $this->getCollection($name)->toArray();
+        return $this->getCollection($name)?->toArray() ?? [];
     }
 
     /**
      * Get the media relationship.
      */
-    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function media(): MorphMany
     {
         return $this->morphMany(config('media.model'), 'mediable', 'mediable_type', 'mediable_id');
     }
@@ -210,7 +212,7 @@ trait HasMedia
                 'single' => false,
                 's3' => [
                     'ttl_temporary_url' => config('media.s3.default_ttl_temporary_url', 5),
-                ]
+                ],
             ],
         ];
     }

@@ -1,5 +1,7 @@
 <?php
 
+use Waad\Media\Media;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -16,7 +18,7 @@ return [
     | Media Model Configuration
     |--------------------------------------------------------------------------
     */
-    'model' => Waad\Media\Media::class,
+    'model' => Media::class,
 
     /*
     |--------------------------------------------------------------------------
@@ -26,16 +28,6 @@ return [
     | Configure the table name used for storing media records.
     */
     'table_name' => 'media',
-
-    /*
-    |--------------------------------------------------------------------------
-    | UUID Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Enable UUID for media records. When enabled, media records will use UUID
-    | for their primary keys instead of auto-incrementing integers.
-    */
-    'uuid' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -54,6 +46,20 @@ return [
     's3' => [
         // Default TTL for temporary URLs in minutes
         'default_ttl_temporary_url' => env('MEDIA_DEFAULT_S3_TTL_TEMPORARY_URL', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Shortcut Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Map disk names to their public path shortcuts used for URL generation
+    | and symbolic link creation via `media:link` command.
+    | Example: 'public' => 'storage' maps the public disk to /storage/ URL prefix.
+    |
+    */
+    'shortcut' => [
+        // 'public' => 'storage',
     ],
 
     /*

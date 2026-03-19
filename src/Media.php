@@ -4,9 +4,10 @@ namespace Waad\Media;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Waad\Media\Helpers\FileSystem;
 
 class Media extends Model
 {
@@ -42,57 +43,9 @@ class Media extends Model
         'bucket',
     ];
 
-    public function __construct(array $attributes = [])
+    public function getTable()
     {
-        parent::__construct($attributes);
-        $this->setTable(config('media.table_name'));
-
-        if (config('media.uuid', false)) {
-            $this->usesUniqueIds = true;
-        }
-    }
-
-    public function uniqueIds()
-    {
-        return config('media.uuid', false) ? [$this->getKeyName()] : [];
-    }
-
-    public function newUniqueId()
-    {
-        return config('media.uuid', false) ? (string) Str::orderedUuid() : null;
-    }
-
-    public function resolveRouteBindingQuery($query, $value, $field = null)
-    {
-        if (config('media.uuid', false)) {
-            if ($field && in_array($field, $this->uniqueIds()) && ! Str::isUuid($value)) {
-                throw (new ModelNotFoundException)->setModel(get_class($this), $value);
-            }
-
-            if (! $field && in_array($this->getRouteKeyName(), $this->uniqueIds()) && ! Str::isUuid($value)) {
-                throw (new ModelNotFoundException)->setModel(get_class($this), $value);
-            }
-        }
-
-        return parent::resolveRouteBindingQuery($query, $value, $field);
-    }
-
-    public function getKeyType()
-    {
-        if (config('media.uuid', false) && in_array($this->getKeyName(), $this->uniqueIds())) {
-            return 'string';
-        }
-
-        return $this->keyType;
-    }
-
-    public function getIncrementing()
-    {
-        if (config('media.uuid', false) && in_array($this->getKeyName(), $this->uniqueIds())) {
-            return false;
-        }
-
-        return $this->incrementing;
+        return $this->table ?? config('media.table_name');
     }
 
     /**
@@ -112,7 +65,7 @@ class Media extends Model
     }
 
     /**
-     * Get the private temporary URL for accessing the media file
+     * Get the private temporary URL for accessing the media file (S3 only)
      */
     public function getTemporaryUrlAttribute(): ?string
     {
@@ -121,10 +74,18 @@ class Media extends Model
         }
 
         $disk = $this->disk ?? config('media.disk');
-        $bucket = $this->bucket ?? config('media.bucket');
-        $shortcut = config("media.shortcut.{$disk}");
 
-        return $this->basename ? sprintf('%s/%s', url("{$shortcut}/{$bucket}/"), $this->basename) : null;
+        if (! FileSystem::isDiskS3($disk) || ! $this->path) {
+            return null;
+        }
+
+        try {
+            $ttl = config('media.s3.default_ttl_temporary_url', 5);
+
+            return Storage::disk($disk)->temporaryUrl($this->path, now()->addMinutes($ttl));
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -148,7 +109,7 @@ class Media extends Model
     /**
      * Get the parent model that owns the media
      */
-    public function mediable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function mediable(): MorphTo
     {
         return $this->morphTo('mediable');
     }
@@ -156,7 +117,7 @@ class Media extends Model
     /**
      * Get the user that owns the media
      */
-    public function user(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function user(): MorphTo
     {
         return $this->morphTo();
     }

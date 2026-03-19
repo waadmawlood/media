@@ -172,3 +172,132 @@ it('can handle media collections', function () {
     expect($post->getCollection('avatars'))->toHaveCount(1);
     expect($post->getCollection('gallery'))->toHaveCount(1);
 });
+
+it('can delete media', function () {
+    $media = $this->post->addMedia($this->file)->upload();
+    expect($this->post->mediaTotalCount())->toBe(1);
+
+    $this->post->deleteMedia($media->id)->delete();
+
+    expect($this->post->mediaTotalCount())->toBe(0);
+    expect($this->post->mediaTotalCount(withTrashed: true))->toBe(1);
+});
+
+it('can get total media size', function () {
+    $media = $this->post->addMedia($this->file)->upload();
+
+    expect($this->post->mediaTotalSize())->toBeGreaterThan(0);
+});
+
+it('can get total media count', function () {
+    $this->post->addMedia($this->file)->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('test2.jpg', 50, 50))->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(2);
+});
+
+it('can check if model has media', function () {
+    expect($this->post->hasMedia())->toBeFalse();
+
+    $this->post->addMedia($this->file)->upload();
+
+    expect($this->post->hasMedia())->toBeTrue();
+});
+
+it('can get all media', function () {
+    $this->post->addMedia($this->file)->upload();
+    $this->post->addMedia(UploadedFile::fake()->image('test2.jpg'))->upload();
+
+    $media = $this->post->getMedia();
+    expect($media)->toHaveCount(2);
+});
+
+it('returns null when uploading null files', function () {
+    $result = $this->post->addMedia(null)->upload();
+
+    expect($result)->toBeNull();
+});
+
+it('can upload with custom label and index', function () {
+    $media = $this->post->addMedia($this->file)
+        ->label('profile-picture')
+        ->index(5)
+        ->upload();
+
+    expect($media->label)->toBe('profile-picture');
+    expect($media->index)->toBe(5);
+});
+
+it('returns null for temporary_url on local disk', function () {
+    $media = $this->post->addMedia($this->file)->upload();
+
+    expect($media->temporary_url)->toBeNull();
+});
+
+it('can get media collection as array', function () {
+    $this->post->registerCollections([
+        'default' => [
+            'disk' => 'public',
+            'bucket' => 'upload',
+            'label' => null,
+            'single' => false,
+        ],
+    ]);
+
+    $this->post->addMedia($this->file)->upload();
+
+    $array = $this->post->getCollectionArray('default');
+    expect($array)->toBeArray()->not->toBeEmpty();
+});
+
+it('can soft delete and check with trashed', function () {
+    $media = $this->post->addMedia($this->file)->upload();
+
+    $this->post->deleteMedia($media->id)->delete();
+
+    expect($this->post->mediaTotalCount())->toBe(0);
+    expect($this->post->mediaTotalCount(withTrashed: true))->toBe(1);
+    expect($this->post->mediaById($media->id))->toBeNull();
+    expect($this->post->mediaById($media->id, withTrashed: true))->not->toBeNull();
+});
+
+it('can get mediable relationship', function () {
+    $media = $this->post->addMedia($this->file)->upload();
+
+    expect($media->mediable)->toBeInstanceOf(Post::class);
+    expect($media->mediable->id)->toBe($this->post->id);
+});
+
+it('can check file exists on disk via upload service', function () {
+    $service = $this->post->addMedia($this->file);
+    $media = $service->upload();
+
+    expect($service->fileExists($media->path))->toBeTrue();
+    expect($service->fileExists('nonexistent/file.jpg'))->toBeFalse();
+});
+
+it('can get file size via upload service', function () {
+    $service = $this->post->addMedia($this->file);
+    $media = $service->upload();
+
+    expect($service->fileSize($media->path))->toBeGreaterThan(0);
+});
+
+it('can get file metadata via upload service', function () {
+    $service = $this->post->addMedia($this->file);
+    $media = $service->upload();
+
+    $metadata = $service->fileMetadata($media->path);
+    expect($metadata)->toBeArray()
+        ->toHaveKeys(['size', 'mimetype', 'last_modified']);
+    expect($metadata['size'])->toBeGreaterThan(0);
+});
+
+it('can delete file from disk via upload service', function () {
+    $service = $this->post->addMedia($this->file);
+    $media = $service->upload();
+
+    expect($service->fileExists($media->path))->toBeTrue();
+    expect($service->deleteFile($media->path))->toBeTrue();
+    expect($service->fileExists($media->path))->toBeFalse();
+});

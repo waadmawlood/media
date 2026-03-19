@@ -11,19 +11,11 @@ abstract class TestCase extends Orchestra
     {
         parent::setUp();
 
-        // Configure storage path
         $this->app->useStoragePath(__DIR__.'/temp');
-        if (! file_exists(__DIR__.'/temp')) {
-            mkdir(__DIR__.'/temp', 0775, true);
-        }
 
-        // Create storage directories
         if (! file_exists(__DIR__.'/temp/app/public/upload')) {
             mkdir(__DIR__.'/temp/app/public/upload', 0775, true);
         }
-
-        // Clear any leftover temporary files
-        $this->cleanupTempFiles();
     }
 
     protected function getPackageProviders($app)
@@ -37,7 +29,6 @@ abstract class TestCase extends Orchestra
     {
         // Load package config
         $app['config']->set('media', require __DIR__.'/../config/config.php');
-        // $app['config']->set('media.uuid', true);
 
         // Storage config
         $app['config']->set('filesystems.disks.public', [
@@ -52,26 +43,11 @@ abstract class TestCase extends Orchestra
     {
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations/create_media_table.php');
-        // $this->loadMigrationsFrom(__DIR__ . '/../database/migrations/create_media_uuid_table.php');
     }
 
     protected function tearDown(): void
     {
-        // Clean up temp storage and files
         $this->cleanupTempFiles();
-
-        // Close database connections and clear app instance
-        if ($this->app) {
-            foreach ($this->app->make('db')->getConnections() as $connection) {
-                $connection->disconnect();
-            }
-
-            $this->app->flush();
-            $this->app = null;
-        }
-
-        // Clean up memory
-        gc_collect_cycles();
 
         parent::tearDown();
     }

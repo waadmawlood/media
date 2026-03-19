@@ -1,6 +1,7 @@
 <?php
 
 use Tests\App\Models\Post;
+use Tests\TestCase;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +14,7 @@ use Tests\App\Models\Post;
 |
 */
 
-uses(Tests\TestCase::class)->in('Feature');
+uses(TestCase::class)->in('Feature');
 
 /*
 |--------------------------------------------------------------------------
