@@ -45,6 +45,11 @@ trait HasMedia
         return $upload;
     }
 
+    public function syncMediaWithoutDettached(UploadedFile|array|null $files = null): MediaUploadService
+    {
+        return $this->addMedia($files)->setIsWithDettachedSync(false);
+    }
+
     /**
      * Delete media of model.
      *

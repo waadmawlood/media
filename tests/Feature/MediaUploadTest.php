@@ -194,6 +194,26 @@ it('accepts a Collection of ids for syncMedia', function () {
     expect($synced->id)->not->toBe($initial->id);
 });
 
+it('syncMediaWithoutDettached adds files without removing existing media in the collection', function () {
+    $first = $this->post->addMedia($this->file)->upload();
+    $secondFile = UploadedFile::fake()->image('second.jpg');
+
+    $this->post->syncMediaWithoutDettached($secondFile)->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(2);
+    expect($this->post->media()->whereKey($first->id)->exists())->toBeTrue();
+});
+
+it('syncMedia can skip deletions when setIsWithDettachedSync is false', function () {
+    $first = $this->post->addMedia($this->file)->upload();
+    $secondFile = UploadedFile::fake()->image('second.jpg');
+
+    $this->post->syncMedia($secondFile)->setIsWithDettachedSync(false)->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(2);
+    expect($this->post->media()->whereKey($first->id)->exists())->toBeTrue();
+});
+
 it('only removes sync ids that belong to the chained collection name', function () {
     $this->post->registerCollections([
         'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],

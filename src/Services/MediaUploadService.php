@@ -25,6 +25,8 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
      */
     private ?array $syncDeleteIds = null;
 
+    private bool $isWithDettachedSync = true;
+
     public function __construct(protected $model, protected $files = null)
     {
         parent::__construct($model, $files);
@@ -40,6 +42,18 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
     public function getIsSyncMethod(): bool
     {
         return $this->isSyncMethod;
+    }
+
+    public function setIsWithDettachedSync(bool $isWithDettachedSync): static
+    {
+        $this->isWithDettachedSync = $isWithDettachedSync;
+
+        return $this;
+    }
+
+    public function getIsWithDettachedSync(): bool
+    {
+        return $this->isWithDettachedSync;
     }
 
     /**
@@ -283,7 +297,7 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
      */
     private function flushPendingSyncDeletes(): void
     {
-        if (! $this->getIsSyncMethod()) {
+        if (! $this->getIsSyncMethod() || ! $this->getIsWithDettachedSync()) {
             return;
         }
 
