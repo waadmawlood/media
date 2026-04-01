@@ -86,3 +86,19 @@ it('can delete all media for a model', function () {
     expect($this->post->mediaTotalCount())->toBe(0);
     expect($this->post->mediaTotalCount(withTrashed: true))->toBe(3);
 });
+
+it('does not delete media when passed an empty id list', function () {
+    $this->post->addMedia($this->file)->upload();
+
+    $this->post->deleteMedia([])->delete();
+
+    expect($this->post->mediaTotalCount())->toBe(1);
+});
+
+it('does not delete media when passed an empty collection of ids', function () {
+    $this->post->addMedia($this->file)->upload();
+
+    $this->post->deleteMedia(collect())->delete();
+
+    expect($this->post->mediaTotalCount())->toBe(1);
+});

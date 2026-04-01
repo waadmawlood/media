@@ -191,15 +191,42 @@ $count = $post->mediaTotalCountByCollection('gallery', withTrashed: true);
 
 ### Syncing Media
 
-Replace existing media with new files. Pass IDs of media records to remove before uploading the new files:
+Use `syncMedia()` when you want to remove existing rows in a collection and optionally upload replacements. Deletes run **before** the new upload, and only affect the **active collection** (the default collection, or the one set with `collection()` on the chain, or the `$collection` argument passed to `upload()`). Media in other collections on the same model is left alone.
+
+**Remove specific records, then upload**
+
+Pass database IDs of `Media` rows to soft-delete before new files are stored. IDs that do not belong to the active collection are ignored (no rows removed).
 
 ```php
-// Sync: delete old media by IDs, then upload new files
 $post->syncMedia($request->file('images'), [$oldMediaId1, $oldMediaId2])->upload();
 
-// Sync with a specific collection
 $post->syncMedia($request->file('image'), [$oldMediaId])->collection('avatars')->upload();
+
+// Illuminate\Support\Collection of IDs is also accepted
+$post->syncMedia($file, collect([$id1, $id2]))->upload();
 ```
+
+**Replace everything in the collection**
+
+If you omit the second argument (or pass an empty array), existing media in that collection is removed first, then new files are uploaded. This is useful for a full “replace gallery” flow.
+
+```php
+$post->syncMedia($request->file('images'))->upload();
+
+$post->syncMedia($request->file('image'))->collection('gallery')->upload();
+```
+
+**Additive uploads (no removal)**
+
+To upload new files without running the sync removal step, use `syncMediaWithoutDettached()` or chain `setIsWithDettachedSync(false)` after `syncMedia()`:
+
+```php
+$post->syncMediaWithoutDettached($request->file('extra'))->upload();
+
+$post->syncMedia($request->file('extra'))->setIsWithDettachedSync(false)->upload();
+```
+
+You can still combine with `collection()`, `disk()`, and the rest of the fluent API as with `addMedia()`.
 
 ### Deleting Media
 
@@ -333,6 +360,7 @@ return [
 - Polymorphic media relationships
 - File statistics (total size, total count) — global and per-collection
 - Customizable date serialization format
+- `syncMedia()` with collection-scoped deletes (by ID or full collection replace), plus additive uploads via `syncMediaWithoutDettached()` or `setIsWithDettachedSync(false)`
 
 ## Testing
 

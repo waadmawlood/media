@@ -158,6 +158,78 @@ it('can sync media with null files and still delete old ones', function () {
     expect($this->post->mediaTotalCount(withTrashed: true))->toBe(1);
 });
 
+it('does not delete other media when syncMedia omits ids to delete', function () {
+    $keep = $this->post->addMedia($this->file)->upload();
+    $newFile = UploadedFile::fake()->image('synced.jpg');
+
+    $this->post->syncMedia($newFile)->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(1);
+    expect($this->post->media()->whereKey($keep->id)->exists())->toBeFalse();
+});
+
+it('does not delete other collections when syncing one collection with empty ids', function () {
+    $this->post->registerCollections([
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+        'documents' => ['disk' => 'public', 'bucket' => 'docs', 'label' => 'docs', 'single' => false],
+    ]);
+
+    $doc = $this->post->addMedia(UploadedFile::fake()->create('doc.pdf', 100))->collection('documents')->upload();
+    $newGallery = UploadedFile::fake()->image('gallery.jpg');
+
+    $this->post->syncMedia($newGallery)->collection('gallery')->upload();
+
+    expect($this->post->media()->where('collection', 'documents')->count())->toBe(1);
+    expect($this->post->media()->whereKey($doc->id)->exists())->toBeTrue();
+    expect($this->post->media()->where('collection', 'gallery')->count())->toBe(1);
+});
+
+it('accepts a Collection of ids for syncMedia', function () {
+    $initial = $this->post->addMedia($this->file)->upload();
+    $newFile = UploadedFile::fake()->image('replaced.jpg');
+
+    $synced = $this->post->syncMedia($newFile, collect([$initial->id]))->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(1);
+    expect($synced->id)->not->toBe($initial->id);
+});
+
+it('syncMediaWithoutDettached adds files without removing existing media in the collection', function () {
+    $first = $this->post->addMedia($this->file)->upload();
+    $secondFile = UploadedFile::fake()->image('second.jpg');
+
+    $this->post->syncMediaWithoutDettached($secondFile)->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(2);
+    expect($this->post->media()->whereKey($first->id)->exists())->toBeTrue();
+});
+
+it('syncMedia can skip deletions when setIsWithDettachedSync is false', function () {
+    $first = $this->post->addMedia($this->file)->upload();
+    $secondFile = UploadedFile::fake()->image('second.jpg');
+
+    $this->post->syncMedia($secondFile)->setIsWithDettachedSync(false)->upload();
+
+    expect($this->post->mediaTotalCount())->toBe(2);
+    expect($this->post->media()->whereKey($first->id)->exists())->toBeTrue();
+});
+
+it('only removes sync ids that belong to the chained collection name', function () {
+    $this->post->registerCollections([
+        'avatars' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatars', 'single' => false],
+        'gallery' => ['disk' => 'public', 'bucket' => 'gallery', 'label' => 'gallery', 'single' => false],
+    ]);
+
+    $galleryMedia = $this->post->addMedia(UploadedFile::fake()->image('keep.jpg'))->collection('gallery')->upload();
+    $newAvatar = UploadedFile::fake()->image('avatar.jpg');
+
+    $this->post->syncMedia($newAvatar, [$galleryMedia->id])->collection('avatars')->upload();
+
+    expect($this->post->media()->whereKey($galleryMedia->id)->exists())->toBeTrue();
+    expect($this->post->media()->where('collection', 'avatars')->count())->toBe(1);
+    expect($this->post->media()->where('collection', 'gallery')->count())->toBe(1);
+});
+
 it('replaces old media in single collection on upload', function () {
     $this->post->registerCollections([
         'avatar' => ['disk' => 'public', 'bucket' => 'avatars', 'label' => 'avatar', 'single' => true],
