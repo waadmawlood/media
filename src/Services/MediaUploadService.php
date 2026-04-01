@@ -241,6 +241,6 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
         $this->setCollection($collection);
         $this->disk($register['disk'] ?? $this->getDisk());
         $this->bucket($register['bucket'] ?? $this->getBucket());
-        $this->label($register['label'] ?? $this->getLabel());
+        $this->label($register['label'] ?? $this->getLabel() ?? $this->getBucket() ?? '');
     }
 }

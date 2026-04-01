@@ -16,25 +16,20 @@ class Files
             return null;
         }
 
-        $path = $file->store($bucket, ['disk' => $disk]);
+        // Livewire's TemporaryUploadedFile moves the temp file on store(); read metadata first
+        // or getSize()/getRealPath() will target a path that no longer exists (Flysystem UnableToRetrieveMetadata).
+        $filename = $file->getClientOriginalName();
+        $extension = $file->extension();
+        $fileSize = $file->getSize();
+        $mimeType = $file->getMimeType();
+        $mimeMain = explode('/', $mimeType)[0];
 
-        if (! $path) {
-            return null;
-        }
-
-        $fileDto = new MediaDto($path);
-        $fileDto->filename = $file->getClientOriginalName();
-        $fileDto->extension = $file->extension();
-        $fileDto->fileSize = $file->getSize();
-        $fileDto->mimeType = $file->getMimeType();
-
-        $mimeType = explode('/', $fileDto->mimeType)[0];
-
-        if ($mimeType === 'image') {
+        $imageMetadata = [];
+        if ($mimeMain === 'image') {
             try {
                 $dimensions = @getimagesize($file->getRealPath());
                 if ($dimensions) {
-                    $fileDto->metadata = [
+                    $imageMetadata = [
                         'width' => $dimensions[0],
                         'height' => $dimensions[1],
                     ];
@@ -42,12 +37,27 @@ class Files
             } catch (\Exception $e) {
                 \Log::warning('Failed to get image dimensions: '.$e->getMessage());
             } finally {
-                // Clean up memory
                 if (isset($dimensions)) {
                     unset($dimensions);
                 }
                 gc_collect_cycles();
             }
+        }
+
+        $path = $file->store($bucket, ['disk' => $disk]);
+
+        if (! $path) {
+            return null;
+        }
+
+        $fileDto = new MediaDto($path);
+        $fileDto->filename = $filename;
+        $fileDto->extension = $extension;
+        $fileDto->fileSize = $fileSize;
+        $fileDto->mimeType = $mimeType;
+
+        if ($imageMetadata !== []) {
+            $fileDto->metadata = $imageMetadata;
         }
 
         return $fileDto;
