@@ -15,9 +15,41 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
 {
     private bool $isList;
 
+    private bool $isSyncMethod = false;
+
+    /**
+     * IDs pending removal from {@see HasMedia::syncMedia()}, applied in {@see upload()} so
+     * deletes respect the collection set via {@see collection()} or {@see upload()}'s $collection argument.
+     *
+     * @var array<int>|null
+     */
+    private ?array $syncDeleteIds = null;
+
     public function __construct(protected $model, protected $files = null)
     {
         parent::__construct($model, $files);
+    }
+
+    public function setIsSyncMethod(bool $isSyncMethod): static
+    {
+        $this->isSyncMethod = $isSyncMethod;
+
+        return $this;
+    }
+
+    public function getIsSyncMethod(): bool
+    {
+        return $this->isSyncMethod;
+    }
+
+    /**
+     * @param  array<int>  $ids
+     */
+    public function withSyncDeleteIds(array $ids): static
+    {
+        $this->syncDeleteIds = $ids;
+
+        return $this;
     }
 
     public function index(int $index): static
@@ -59,6 +91,8 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
         if (filled($disk)) {
             $this->setDisk($disk);
         }
+
+        $this->flushPendingSyncDeletes();
 
         if (blank($this->getFiles())) {
             return null;
@@ -242,5 +276,36 @@ class MediaUploadService extends MediaService implements MediaServiceInterface
         $this->disk($register['disk'] ?? $this->getDisk());
         $this->bucket($register['bucket'] ?? $this->getBucket());
         $this->label($register['label'] ?? $this->getLabel() ?? $this->getBucket() ?? '');
+    }
+
+    /**
+     * Remove synced-out media only within the active collection (never other collections).
+     */
+    private function flushPendingSyncDeletes(): void
+    {
+        if (! $this->getIsSyncMethod()) {
+            return;
+        }
+
+        $collection = $this->getCollection();
+        if (blank($collection)) {
+            $collection = config('media.default_collection');
+        }
+
+        if ($this->syncDeleteIds === null || $this->syncDeleteIds === []) {
+            $this->getModel()->media()
+                ->where('collection', $collection)
+                ->delete();
+
+            return;
+        }
+
+        $ids = $this->syncDeleteIds;
+        $this->syncDeleteIds = null;
+
+        $this->getModel()->media()
+            ->whereIn('id', $ids)
+            ->where('collection', $collection)
+            ->delete();
     }
 }

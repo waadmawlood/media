@@ -25,14 +25,24 @@ trait HasMedia
     /**
      * Update media of model by syncing files and deleting specified IDs.
      *
+     * IDs are removed when {@see MediaUploadService::upload()} runs, scoped to the collection
+     * set with {@see MediaUploadService::collection()} or the {@see MediaUploadService::upload()} argument
+     * (e.g. only rows in that collection are deleted — other collections are untouched).
+     *
      * @param  UploadedFile|array<UploadedFile>|null  $files
-     * @param  array<int>  $ids
+     * @param  array<int>|Collection<int, int>  $ids  Media IDs to remove before upload; empty means do not delete by ID
      */
-    public function syncMedia(UploadedFile|array|null $files = null, array $ids = []): MediaUploadService
+    public function syncMedia(UploadedFile|array|null $files = null, array|Collection $ids = []): MediaUploadService
     {
-        $this->deleteMedia($ids)->delete();
+        $idsToDelete = $ids instanceof Collection ? $ids->all() : $ids;
+        $upload = $this->addMedia($files);
+        $upload->setIsSyncMethod(true);
 
-        return $this->addMedia($files);
+        if ($idsToDelete !== []) {
+            $upload->withSyncDeleteIds($idsToDelete);
+        }
+
+        return $upload;
     }
 
     /**
@@ -42,6 +52,10 @@ trait HasMedia
      */
     public function deleteMedia($files = null): MediaDeletingService
     {
+        if (($files instanceof Collection && $files->isEmpty()) || (is_array($files) && $files === [])) {
+            return new MediaDeletingService($this, []);
+        }
+
         return new MediaDeletingService($this, filled($files) ? $files : $this->media);
     }
 
