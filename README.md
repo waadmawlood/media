@@ -277,6 +277,19 @@ $service->deleteFile('upload/photo.jpg');
 $service->disk('s3')->temporaryUrl('photos/secret.jpg', minutes: 10);
 ```
 
+## Filament
+
+To use **waad/media** inside [Filament](https://filamentphp.com) admin panels, install the companion package [**waad/filament-media**](https://github.com/waadmawlood/filament-media). It provides a `MediaUpload` form component that lines up with `HasMedia` and `registerCollections()` (single vs multiple files, disks, reordering via `index`, and sync behavior).
+
+- **Plugin page (docs & requirements):** [Media Library — Filament](https://filamentphp.com/plugins/waad-mawlood-media-library)
+- **This package (filament plugin):** [waad/filament-media](https://github.com/waadmawlood/filament-media)
+
+```bash
+composer require waad/filament-media
+```
+
+See the Filament plugin documentation for setup, `MediaUpload::make(...)`, and table previews with `getCollectionUrls()`.
+
 ## Configuration
 
 Customize the package in `config/media.php`:
