@@ -395,7 +395,7 @@ return [
 - File statistics (total size, total count) — global and per-collection
 - Customizable date serialization format
 - `syncMedia()` with collection-scoped deletes (by ID or full collection replace), plus additive uploads via `syncMediaWithoutDettached()` or `setIsWithDettachedSync(false)`
-- `orderByIndex()` for index-based media ordering across all retrieval methods
+- `orderByIndexMedia()` for index-based media ordering across all retrieval methods
 
 ## Testing
 
