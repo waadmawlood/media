@@ -12,6 +12,26 @@ trait HasMedia
 {
     public ?array $registerMediaCollections = null;
 
+    public bool $useIndexMedia = true;
+
+    /**
+     * Enable ordering media by index column.
+     */
+    public function orderByIndexMedia(bool $enabled = true): static
+    {
+        $this->useIndexMedia = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Apply index ordering to a query if useIndex is enabled.
+     */
+    private function applyIndexOrder($query)
+    {
+        return $this->useIndexMedia ? $query->orderBy('index') : $query;
+    }
+
     /**
      * Add media for model.
      *
@@ -139,10 +159,11 @@ trait HasMedia
      */
     public function mediaByMimeType(string $mimeType, bool $withTrashed = false): Collection
     {
-        return $this->media()
-            ->where('mimetype', $mimeType)
-            ->when($withTrashed, fn ($q) => $q->withTrashed())
-            ->get();
+        return $this->applyIndexOrder(
+            $this->media()
+                ->where('mimetype', $mimeType)
+                ->when($withTrashed, fn ($q) => $q->withTrashed())
+        )->get();
     }
 
     /**
@@ -152,11 +173,12 @@ trait HasMedia
     {
         $collection = $collection ?? config('media.default_collection');
 
-        return $this->media()
-            ->where('mimetype', $mimeType)
-            ->where('collection', $collection)
-            ->when($withTrashed, fn ($q) => $q->withTrashed())
-            ->get();
+        return $this->applyIndexOrder(
+            $this->media()
+                ->where('mimetype', $mimeType)
+                ->where('collection', $collection)
+                ->when($withTrashed, fn ($q) => $q->withTrashed())
+        )->get();
     }
 
     /**
@@ -166,10 +188,11 @@ trait HasMedia
      */
     public function mediaApproved(bool $approved = true, bool $withTrashed = false): Collection
     {
-        return $this->media()
-            ->where('approved', $approved)
-            ->when($withTrashed, fn ($q) => $q->withTrashed())
-            ->get();
+        return $this->applyIndexOrder(
+            $this->media()
+                ->where('approved', $approved)
+                ->when($withTrashed, fn ($q) => $q->withTrashed())
+        )->get();
     }
 
     /**
@@ -190,7 +213,7 @@ trait HasMedia
      */
     public function getMedia(): Collection
     {
-        return $this->media()->get();
+        return $this->applyIndexOrder($this->media())->get();
     }
 
     /**
@@ -242,6 +265,8 @@ trait HasMedia
         }
 
         $query = $this->media()->where('collection', $name);
+
+        $query = $this->applyIndexOrder($query);
 
         return ($register['single'] ?? false) ? $query->first() : $query->get();
     }

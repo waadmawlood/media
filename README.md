@@ -189,6 +189,27 @@ $count = $post->mediaTotalCountByCollection('gallery');
 $count = $post->mediaTotalCountByCollection('gallery', withTrashed: true);
 ```
 
+### Ordering Media by Index
+
+Use `orderByIndexMedia()` to order media results by the `index` column. This is enabled by default, so media is automatically sorted by index unless explicitly disabled. default value for `orderByIndexMedia()` method is `true` so you can remove it when you want to order by index.
+
+```php
+// Order by index (enabled by default)
+$media = $post->orderByIndexMedia()->getMedia();
+$media = $post->orderByIndexMedia()->getCollection('gallery');
+$urls  = $post->orderByIndexMedia()->getCollectionUrls();
+$array = $post->orderByIndexMedia()->getCollectionArray('gallery');
+
+// Works with filter methods too
+$images = $post->orderByIndexMedia()->mediaByMimeType('image/jpeg');
+$approved = $post->orderByIndexMedia()->mediaApproved();
+
+// Disable index ordering
+$media = $post->orderByIndexMedia(false)->getMedia();
+```
+
+The `orderByIndexMedia()` method is fluent and can be chained with any media retrieval method that returns a collection or query result.
+
 ### Syncing Media
 
 Use `syncMedia()` when you want to remove existing rows in a collection and optionally upload replacements. Deletes run **before** the new upload, and only affect the **active collection** (the default collection, or the one set with `collection()` on the chain, or the `$collection` argument passed to `upload()`). Media in other collections on the same model is left alone.
@@ -374,6 +395,7 @@ return [
 - File statistics (total size, total count) — global and per-collection
 - Customizable date serialization format
 - `syncMedia()` with collection-scoped deletes (by ID or full collection replace), plus additive uploads via `syncMediaWithoutDettached()` or `setIsWithDettachedSync(false)`
+- `orderByIndexMedia()` for index-based media ordering across all retrieval methods
 
 ## Testing
 
